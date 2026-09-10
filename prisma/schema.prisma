@@ -36,6 +36,14 @@ model Tenant {
   roles       Role[]
   auditLogs   AuditLog[]
   sampleItems SampleItem[]
+  articleCategories ArticleCategory[]
+  articles          Article[]
+  departments       Department[]
+  staffProfiles     StaffProfile[]
+  programs          Program[]
+  facilityResources FacilityResource[]
+  bookingReservations BookingReservation[]
+  documentRequests  DocumentRequest[]
 
   @@map("tenants")
 }
@@ -63,6 +71,11 @@ model User {
   userTenants UserTenant[]
   authTokens  AuthToken[]
   auditLogs   AuditLog[]   @relation("AuditActor")
+  articles    Article[]    @relation("ArticleAuthor")
+  staffProfiles         StaffProfile[]
+  bookingReservations   BookingReservation[]
+  documentRequests      DocumentRequest[]
+  documentApprovalSteps DocumentApprovalStep[]
 
   @@map("users")
 }
@@ -209,4 +222,283 @@ model SampleItem {
 
   @@index([tenantId])
   @@map("sample_items")
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model ArticleCategory {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  nameTh    String   @map("name_th") @db.VarChar(100)
+  nameEn    String   @map("name_en") @db.VarChar(100)
+  slug      String   @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  articles Article[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@map("article_categories")
+}
+
+model Article {
+  id            String        @id @default(uuid()) @db.Uuid
+  tenantId      String        @map("tenant_id") @db.Uuid
+  categoryId    String        @map("category_id") @db.Uuid
+  authorId      String        @map("author_id") @db.Uuid
+  title         String        @db.VarChar(255)
+  slug          String        @db.VarChar(255)
+  excerpt       String?       @db.Text
+  content       String        @db.Text
+  coverImageUrl String?       @map("cover_image_url") @db.VarChar(500)
+  status        ArticleStatus @default(DRAFT)
+  isPinned      Boolean       @default(false) @map("is_pinned")
+  viewCount     Int           @default(0) @map("view_count")
+  publishedAt   DateTime?     @map("published_at") @db.Timestamptz()
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz()
+
+  tenant   Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category ArticleCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  author   User            @relation("ArticleAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, status, publishedAt])
+  @@index([tenantId, isPinned])
+  @@map("articles")
+}
+
+// ── 2. ระบบจัดการบุคลากร (Staff Directory) ──────────────────────────────────
+enum StaffStatus {
+  ACTIVE
+  ON_LEAVE
+  RESIGNED
+}
+
+model Department {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  code      String   @db.VarChar(50)
+  nameTh    String   @map("name_th") @db.VarChar(255)
+  nameEn    String   @map("name_en") @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  staffProfiles StaffProfile[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@map("departments")
+}
+
+model StaffProfile {
+  id              String      @id @default(uuid()) @db.Uuid
+  tenantId        String      @map("tenant_id") @db.Uuid
+  departmentId    String      @map("department_id") @db.Uuid
+  userId          String?     @map("user_id") @db.Uuid
+  academicTitleTh String      @map("academic_title_th") @db.VarChar(50)
+  academicTitleEn String      @map("academic_title_en") @db.VarChar(50)
+  firstNameTh     String      @map("first_name_th") @db.VarChar(100)
+  firstNameEn     String      @map("first_name_en") @db.VarChar(100)
+  lastNameTh      String      @map("last_name_th") @db.VarChar(100)
+  lastNameEn      String      @map("last_name_en") @db.VarChar(100)
+  positionTh      String?     @map("position_th") @db.VarChar(100)
+  positionEn      String?     @map("position_en") @db.VarChar(100)
+  email           String      @db.VarChar(255)
+  phoneExt        String?     @map("phone_ext") @db.VarChar(50)
+  roomNumber      String?     @map("room_number") @db.VarChar(50)
+  avatarUrl       String?     @map("avatar_url") @db.VarChar(500)
+  biography       String?     @db.Text
+  expertise       Json        @default("[]") @db.JsonB
+  education       Json        @default("[]") @db.JsonB
+  sortOrder       Int         @default(0) @map("sort_order")
+  status          StaffStatus @default(ACTIVE)
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  user       User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, departmentId])
+  @@index([tenantId, sortOrder])
+  @@map("staff_profiles")
+}
+
+// ── 3. ระบบจัดการหลักสูตร (Academic Programs) ───────────────────────────────
+enum ProgramDegreeLevel {
+  BACHELOR
+  MASTER
+  DOCTORAL
+  DIPLOMA
+}
+
+enum ProgramStatus {
+  OPEN_ADMISSION
+  ACTIVE
+  REVISED
+  CLOSED
+}
+
+model Program {
+  id                 String             @id @default(uuid()) @db.Uuid
+  tenantId           String             @map("tenant_id") @db.Uuid
+  code               String             @db.VarChar(50)
+  nameTh             String             @map("name_th") @db.VarChar(255)
+  nameEn             String             @map("name_en") @db.VarChar(255)
+  degreeLevel        ProgramDegreeLevel @default(BACHELOR) @map("degree_level")
+  degreeNameTh       String             @map("degree_name_th") @db.VarChar(255)
+  degreeNameEn       String             @map("degree_name_en") @db.VarChar(255)
+  curriculumYear     Int                @map("curriculum_year")
+  totalCredits       Int                @map("total_credits")
+  tuitionFeeSemester Decimal            @default(0) @map("tuition_fee_semester") @db.Decimal(10, 2)
+  durationYears      Int                @default(4) @map("duration_years")
+  brochureFileUrl    String?            @map("brochure_file_url") @db.VarChar(500)
+  description        String?            @db.Text
+  programStructure   Json               @default("[]") @db.JsonB
+  status             ProgramStatus      @default(ACTIVE)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz()
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, code])
+  @@index([tenantId, degreeLevel])
+  @@map("programs")
+}
+
+// ── 4. ระบบจองห้องประชุมและยานพาหนะ (Resource Booking) ──────────────────────
+enum FacilityType {
+  ROOM
+  VEHICLE
+}
+
+enum BookingStatus {
+  PENDING_APPROVAL
+  CONFIRMED
+  REJECTED
+  CANCELLED
+}
+
+model FacilityResource {
+  id               String       @id @default(uuid()) @db.Uuid
+  tenantId         String       @map("tenant_id") @db.Uuid
+  nameTh           String       @map("name_th") @db.VarChar(255)
+  nameEn           String       @map("name_en") @db.VarChar(255)
+  type             FacilityType @default(ROOM)
+  capacity         Int          @default(1)
+  location         String       @db.VarChar(255)
+  amenities        Json         @default("[]") @db.JsonB
+  photoUrl         String?      @map("photo_url") @db.VarChar(500)
+  requiresApproval Boolean      @default(true) @map("requires_approval")
+  isActive         Boolean      @default(true) @map("is_active")
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz()
+
+  tenant       Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  reservations BookingReservation[]
+
+  @@index([tenantId, type, isActive])
+  @@map("facility_resources")
+}
+
+model BookingReservation {
+  id            String        @id @default(uuid()) @db.Uuid
+  tenantId      String        @map("tenant_id") @db.Uuid
+  resourceId    String        @map("resource_id") @db.Uuid
+  userId        String        @map("user_id") @db.Uuid
+  title         String        @db.VarChar(255)
+  attendeeCount Int           @default(1) @map("attendee_count")
+  startAt       DateTime      @map("start_at") @db.Timestamptz()
+  endAt         DateTime      @map("end_at") @db.Timestamptz()
+  status        BookingStatus @default(PENDING_APPROVAL)
+  note          String?       @db.Text
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz()
+
+  tenant   Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  resource FacilityResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, resourceId, startAt, endAt])
+  @@index([tenantId, userId])
+  @@map("booking_reservations")
+}
+
+// ── 5. ระบบบริหารจัดการและอนุมัติเอกสาร (e-Document) ────────────────────────
+enum DocumentType {
+  MEMO_INTERNAL
+  PURCHASE_REQUEST
+  LEAVE_REQUEST
+  TRAVEL_OFFICIAL
+}
+
+enum DocumentUrgency {
+  NORMAL
+  URGENT
+  VERY_URGENT
+}
+
+enum DocumentStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum StepApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model DocumentRequest {
+  id             String          @id @default(uuid()) @db.Uuid
+  tenantId       String          @map("tenant_id") @db.Uuid
+  docNumber      String          @map("doc_number") @db.VarChar(100)
+  requesterId    String          @map("requester_id") @db.Uuid
+  docType        DocumentType    @default(MEMO_INTERNAL) @map("doc_type")
+  title          String          @db.VarChar(255)
+  description    String?         @db.Text
+  urgency        DocumentUrgency @default(NORMAL)
+  attachmentUrls Json            @default("[]") @map("attachment_urls") @db.JsonB
+  currentStep    Int             @default(1) @map("current_step")
+  totalSteps     Int             @default(1) @map("total_steps")
+  status         DocumentStatus  @default(DRAFT)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz()
+
+  tenant        Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  requester     User                   @relation(fields: [requesterId], references: [id], onDelete: Cascade)
+  approvalSteps DocumentApprovalStep[]
+
+  @@unique([tenantId, docNumber])
+  @@index([tenantId, requesterId])
+  @@index([tenantId, status])
+  @@map("document_requests")
+}
+
+model DocumentApprovalStep {
+  id                String             @id @default(uuid()) @db.Uuid
+  documentRequestId String             @map("document_request_id") @db.Uuid
+  stepOrder         Int                @map("step_order")
+  approverTitle     String             @map("approver_title") @db.VarChar(100)
+  approverUserId    String?            @map("approver_user_id") @db.Uuid
+  status            StepApprovalStatus @default(PENDING)
+  comment           String?            @db.Text
+  actedAt           DateTime?          @map("acted_at") @db.Timestamptz()
+
+  documentRequest DocumentRequest @relation(fields: [documentRequestId], references: [id], onDelete: Cascade)
+  approverUser    User?           @relation(fields: [approverUserId], references: [id], onDelete: SetNull)
+
+  @@index([documentRequestId, stepOrder])
+  @@map("document_approval_steps")
 }

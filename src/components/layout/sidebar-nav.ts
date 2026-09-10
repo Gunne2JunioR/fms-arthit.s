@@ -1,6 +1,22 @@
-import { LayoutDashboard, Users, Settings, Layers, type LucideIcon } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Settings,
+  Layers,
+  Newspaper,
+  UserSquare2,
+  GraduationCap,
+  Calendar,
+  FileText,
+  type LucideIcon,
+} from "lucide-react";
 import { hasPermission, P } from "@/features/identity";
 import { SAMPLE_P } from "@/features/sample";
+import { NEWS_P } from "@/features/news";
+import { DIRECTORY_P } from "@/features/directory";
+import { CURRICULUM_P } from "@/features/curriculum";
+import { BOOKING_P } from "@/features/booking";
+import { DOCUMENT_P } from "@/features/document";
 
 export interface NavItem {
   /** i18n key */
@@ -16,6 +32,21 @@ export interface NavCrumb { title: string; href: string }
 
 export const sidebarGroups: NavGroup[] = [
   { label: "nav.group.overview", items: [{ title: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard }] },
+  {
+    label: "faculty.nav.academic",
+    items: [
+      { title: "news.title", href: "/admin/news", icon: Newspaper, permission: NEWS_P.newsRead },
+      { title: "directory.title", href: "/admin/staff", icon: UserSquare2, permission: DIRECTORY_P.staffRead },
+      { title: "curriculum.title", href: "/admin/programs", icon: GraduationCap, permission: CURRICULUM_P.curriculumRead },
+    ],
+  },
+  {
+    label: "faculty.nav.operations",
+    items: [
+      { title: "booking.title", href: "/admin/bookings", icon: Calendar, permission: BOOKING_P.bookingRead },
+      { title: "document.title", href: "/admin/documents", icon: FileText, permission: DOCUMENT_P.documentRead },
+    ],
+  },
   {
     label: "nav.group.sample",
     items: [{ title: "sample.nav", href: "/sample", icon: Layers, permission: SAMPLE_P.sampleRead }],

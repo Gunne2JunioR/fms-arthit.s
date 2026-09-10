@@ -31,6 +31,16 @@ const T = {
     cta: "Open link",
     foot: (h: number) => `This link expires in ${h} hours. If the button doesn't work, paste the link into your browser.`,
   },
+  cn: {
+    setupSubject: "设置您的账户密码",
+    setupBody: (n: string) => `您好 ${n}，管理员已为您创建了账户。请使用以下链接设置您的密码。`,
+    resetSubject: "重置您的密码",
+    resetBody: (n: string) => `您好 ${n}，您的账户收到了重置密码请求。如果这不是您的操作，请忽略此邮件。`,
+    changeSubject: "确认您的新电子邮箱",
+    changeBody: (n: string) => `您好 ${n}，请确认您要使用此邮箱地址登录。`,
+    cta: "打开链接",
+    foot: (h: number) => `此链接将在 ${h} 小时后过期。如果按钮无法点击，请将链接复制并粘贴到浏览器中。`,
+  },
 } as const;
 
 function build(locale: Locale, subject: string, body: string, p: LinkMailParams): MailContent {

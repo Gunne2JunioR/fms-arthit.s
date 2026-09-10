@@ -9,24 +9,25 @@ import { setLocaleAction } from "@/features/identity/actions";
 import { Button } from "@/components/ui/button";
 
 /**
- * Minimal locale toggle — a single ghost button showing the language you'll
- * switch TO (e.g. shows "EN" while the UI is in Thai). Clicking cycles to the
- * next locale, writes the cookie (and users.locale ถ้า login อยู่), then
- * refreshes so Server Components re-read it and the whole tree re-renders in
- * the new language.
+ * Locale switcher button — displays the active current language code (TH, EN, CN)
+ * matching the currently displayed language. Clicking cycles to the next locale:
+ * TH -> EN -> CN -> TH, writes the cookie, and refreshes the page.
  */
 export function LanguageSwitcher({ className }: { className?: string }) {
   const locale = useLocale();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
-  // Next locale in the list (wraps around) — the one this button switches to.
-  const target: Locale = LOCALES[(LOCALES.indexOf(locale) + 1) % LOCALES.length];
+  // Current active locale uppercase label: "TH" | "EN" | "CN"
+  const currentLabel = (locale ?? "th").toUpperCase();
+
+  // Next locale in cycle
+  const nextLocale: Locale = LOCALES[(LOCALES.indexOf(locale) + 1) % LOCALES.length];
 
   const change = () => {
     if (pending) return;
     startTransition(async () => {
-      await setLocaleAction(target);
+      await setLocaleAction(nextLocale);
       router.refresh();
     });
   };
@@ -38,11 +39,11 @@ export function LanguageSwitcher({ className }: { className?: string }) {
       size="icon"
       onClick={change}
       disabled={pending}
-      aria-label={`Switch language to ${target.toUpperCase()}`}
-      title={`Switch language to ${target.toUpperCase()}`}
-      className={cn("text-xs font-semibold uppercase disabled:opacity-60", className)}
+      aria-label={`Current language: ${currentLabel}. Click to switch to ${nextLocale.toUpperCase()}`}
+      title={`Current language: ${currentLabel}. Click to switch to ${nextLocale.toUpperCase()}`}
+      className={cn("text-xs font-bold uppercase tracking-wider disabled:opacity-60", className)}
     >
-      {target}
+      {currentLabel}
     </Button>
   );
 }

@@ -1,27 +1,17 @@
 import type { z } from "zod";
 import type { Locale } from "./config";
 
-/**
- * ชนิดของ issue ที่ error map ของ zod 4 ได้รับตอน parse (`{ error }`) หรือระดับ config
- * (`z.config({ customError })`) คือ `$ZodRawIssue` (ดีฟอลต์ตรง `$ZodIssue` รวมทุกโค้ด)
- * อ้างจาก node_modules/zod/v4/core/errors.d.cts:
- *   - `ParseContext<T>.error?: $ZodErrorMap<T>`      (schemas.d.cts:13)
- *   - `$ZodErrorMap<T>` มี call signature `(issue: $ZodRawIssue<T>) => {message}|string|undefined|null` (errors.d.cts:131)
- *   - `safeParse` ผูก `T` เป็น `errors.$ZodIssue` เสมอ (parse.d.cts) จึงเท่ากับ `$ZodRawIssue` (ดีฟอลต์)
- * `z.core` คือ `export * as core from "../core/index.cjs"` ซึ่ง re-export ทั้งไฟล์ errors.cjs
- * จึงเข้าถึงชนิดนี้ได้ตรง ๆ ผ่าน `z.core.$ZodRawIssue` โดยไม่ต้อง cast หรือ `any`
- */
 type Issue = z.core.$ZodRawIssue;
 
 const M = {
-  invalid_email: { th: "รูปแบบอีเมลไม่ถูกต้อง", en: "Invalid email address" },
-  required: { th: "กรุณากรอกข้อมูล", en: "Required" },
-  too_small: { th: "ต้องมีอย่างน้อย {n} ตัวอักษร", en: "Must be at least {n} characters" },
-  too_big: { th: "ต้องไม่เกิน {n} ตัวอักษร", en: "Must be at most {n} characters" },
-  invalid: { th: "ข้อมูลไม่ถูกต้อง", en: "Invalid value" },
+  invalid_email: { th: "รูปแบบอีเมลไม่ถูกต้อง", en: "Invalid email address", cn: "电子邮件格式无效" },
+  required: { th: "กรุณากรอกข้อมูล", en: "Required", cn: "此项必填" },
+  too_small: { th: "ต้องมีอย่างน้อย {n} ตัวอักษร", en: "Must be at least {n} characters", cn: "至少需要 {n} 个字符" },
+  too_big: { th: "ต้องไม่เกิน {n} ตัวอักษร", en: "Must be at most {n} characters", cn: "不能超过 {n} 个字符" },
+  invalid: { th: "ข้อมูลไม่ถูกต้อง", en: "Invalid value", cn: "输入值无效" },
 } as const;
 
-const pick = (locale: Locale, k: keyof typeof M, n?: number) => M[k][locale].replace("{n}", String(n ?? ""));
+const pick = (locale: Locale, k: keyof typeof M, n?: number) => (M[k][locale] || M[k].th).replace("{n}", String(n ?? ""));
 
 /** ใช้เป็น `{ error: zodErrorMap(locale) }` ตอน parse หรือ `z.config({ customError })` ระดับ request */
 export function zodErrorMap(locale: Locale) {

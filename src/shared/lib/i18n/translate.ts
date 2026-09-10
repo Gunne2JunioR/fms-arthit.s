@@ -1,6 +1,6 @@
 import type { Locale } from "./config";
 
-export type Message = Record<Locale, string>;
+export type Message = Partial<Record<Locale, string>> & { th: string };
 export type Dictionary = Record<string, Message>;
 export type TParams = Record<string, string | number>;
 export type TFunction = (key: string, params?: TParams) => string;
