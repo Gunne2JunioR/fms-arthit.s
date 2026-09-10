@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>คณะการจัดการและเทคโนโลยีสารสนเทศ - Faculty Web Platform</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React & ReactDOM CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Sarabun & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <!-- Babel Standalone for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: 'Sarabun', 'Inter', sans-serif; }
+    .fade-in { animation: fadeIn 0.25s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-blue-600 selection:text-white min-h-screen flex flex-col">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const DICT = {
+      th: {
+        brandTitle: "คณะการจัดการและเทคโนโลยีสารสนเทศ",
+        brandTagline: "อาคาร 92 ปี ปัญญานันทะ มหาวิทยาลัยมหาจุฬาลงกรณราชวิทยาลัย",
+        navHome: "หน้าแรก",
+        navNews: "ข่าวสารและกิจกรรม",
+        navPrograms: "หลักสูตร",
+        navPersonnel: "ทำเนียบคณาจารย์",
+        navBookings: "จองห้อง/ยานพาหนะ",
+        navDocuments: "สารบรรณและอนุมัติ",
+        heroTitle1: "ก้าวสู่อนาคตแห่งวิชาการ",
+        heroTitle2: "และนวัตกรรมดิจิทัล",
+        heroDesc: "บูรณาการศาสตร์การจัดการและเทคโนโลยีสารสนเทศ เพื่อผลิตบัณฑิตชั้นนำระดับสากล",
+        explorePrograms: "สำรวจหลักสูตร",
+        allNews: "ข่าวทั้งหมด",
+        featuredNews: "เรื่องเด่นน่าสนใจประจำคณะ",
+        readMore: "อ่านต่อ...",
+        searchPh: "ค้นหา...",
+        tuitionFee: "ค่าธรรมเนียมการศึกษา",
+        termSuffix: "บาท / ภาคการศึกษา",
+        duration: "ระยะเวลาศึกษา",
+        years: "ปี",
+        totalCredits: "หน่วยกิตรวม",
+        credits: "หน่วยกิต",
+        openAdmission: "เปิดรับสมัครรอบปัจจุบัน",
+        newBooking: "ทำรายการจองใหม่",
+        newDoc: "ยื่นเอกสารขออนุมัติ",
+        statusConfirmed: "อนุมัติแล้ว",
+        statusPending: "รอการอนุมัติ",
+        statusApproved: "อนุมัติครบถ้วน",
+        footerCopyright: "สงวนลิขสิทธิ์ อาคาร 92 ปี ปัญญานันทะ มจร.",
+        contactUs: "ติดต่อเรา",
+        address: "อาคาร 92 ปี ปัญญานันทะ มจร. ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา"
+      },
+      en: {
+        brandTitle: "Faculty of Management & Information Technology",
+        brandTagline: "92nd Anniversary Phanyananta Building, MCU",
+        navHome: "Home",
+        navNews: "News & Events",
+        navPrograms: "Programs",
+        navPersonnel: "Faculty Staff",
+        navBookings: "Bookings",
+        navDocuments: "e-Documents",
+        heroTitle1: "Step into the Future of Academics",
+        heroTitle2: "and Digital Innovation",
+        heroDesc: "Integrating management science and information technology to nurture world-class graduates.",
+        explorePrograms: "Explore Programs",
+        allNews: "All News",
+        featuredNews: "Featured News",
+        readMore: "Read More...",
+        searchPh: "Search...",
+        tuitionFee: "Tuition Fee",
+        termSuffix: "THB / Term",
+        duration: "Duration",
+        years: "Years",
+        totalCredits: "Total Credits",
+        credits: "Credits",
+        openAdmission: "Admission Open",
+        newBooking: "New Booking",
+        newDoc: "New Document",
+        statusConfirmed: "Confirmed",
+        statusPending: "Pending Approval",
+        statusApproved: "Approved",
+        footerCopyright: "All rights reserved. 92nd Anniversary Building, MCU.",
+        contactUs: "Contact Us",
+        address: "92nd Anniversary Phanyananta Building, MCU, Ayutthaya, Thailand"
+      },
+      cn: {
+        brandTitle: "管理与信息技术学院",
+        brandTagline: "92周年帕雅南达大楼 摩诃朱拉隆功大学",
+        navHome: "首页",
+        navNews: "新闻与动态",
+        navPrograms: "学术课程",
+        navPersonnel: "师资队伍",
+        navBookings: "设施预订",
+        navDocuments: "公文审批",
+        heroTitle1: "迈向学术与创新的未来",
+        heroTitle2: "与数字创新",
+        heroDesc: "融合管理学与信息技术，致力于培养具有国际视野的卓越人才。",
+        explorePrograms: "探索课程",
+        allNews: "全部新闻",
+        featuredNews: "学院焦点头条",
+        readMore: "阅读更多...",
+        searchPh: "搜索...",
+        tuitionFee: "学费",
+        termSuffix: "泰铢 / 学期",
+        duration: "学制",
+        years: "年",
+        totalCredits: "总学分",
+        credits: "学分",
+        openAdmission: "现正招生",
+        newBooking: "发起预订",
+        newDoc: "发起公文申请",
+        statusConfirmed: "已批准",
+        statusPending: "待审批",
+        statusApproved: "已完成审批",
+        footerCopyright: "版权所有 92周年帕雅南达大楼 MCU",
+        contactUs: "联系我们",
+        address: "泰国大城府 摩诃朱拉隆功大学 92周年帕雅南达大楼"
+      }
+    };
+
+    function App() {
+      const [lang, setLang] = useState('th');
+      const [activeTab, setActiveTab] = useState('home');
+      const [news, setNews] = useState([]);
+      const [staff, setStaff] = useState([]);
+      const [programs, setPrograms] = useState([]);
+      const [bookings, setBookings] = useState([]);
+      const [documents, setDocuments] = useState([]);
+      const [loading, setLoading] = useState(true);
+
+      // Booking modal form state
+      const [showBookingModal, setShowBookingModal] = useState(false);
+      const [bookResource, setBookResource] = useState('room-1');
+      const [bookPurpose, setBookPurpose] = useState('');
+      const [bookAttendees, setBookAttendees] = useState(5);
+      const [bookRequester, setBookRequester] = useState('');
+      const [bookStart, setBookStart] = useState('');
+      const [bookEnd, setBookEnd] = useState('');
+      const [bookSubmitting, setBookSubmitting] = useState(false);
+
+      // Document modal form state
+      const [showDocModal, setShowDocModal] = useState(false);
+      const [docTitle, setDocTitle] = useState('');
+      const [docType, setDocType] = useState('MEMO');
+      const [docUrgency, setDocUrgency] = useState('NORMAL');
+      const [docRequester, setDocRequester] = useState('');
+      const [docContent, setDocContent] = useState('');
+      const [docSubmitting, setDocSubmitting] = useState(false);
+
+      const t = DICT[lang] || DICT.th;
+
+      const cycleLang = () => {
+        if (lang === 'th') setLang('en');
+        else if (lang === 'en') setLang('cn');
+        else setLang('th');
+      };
+
+      const loadData = () => {
+        setLoading(true);
+        Promise.all([
+          fetch('api.php?action=news').then(r => r.json()),
+          fetch('api.php?action=staff').then(r => r.json()),
+          fetch('api.php?action=programs').then(r => r.json()),
+          fetch('api.php?action=bookings').then(r => r.json()),
+          fetch('api.php?action=documents').then(r => r.json()),
+        ]).then(([n, s, p, b, d]) => {
+          setNews(n.data || []);
+          setStaff(s.data || []);
+          setPrograms(p.data || []);
+          setBookings(b.data || []);
+          setDocuments(d.data || []);
+          setLoading(false);
+        }).catch(err => {
+          console.error(err);
+          setLoading(false);
+        });
+      };
+
+      useEffect(() => {
+        loadData();
+      }, []);
+
+      useEffect(() => {
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      });
+
+      const handleCreateBooking = (e) => {
+        e.preventDefault();
+        setBookSubmitting(true);
+        fetch('api.php?action=bookings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            resource_id: bookResource,
+            resource_name: bookResource === 'room-1' ? 'ห้องประชุมปัญญานันทะ ชั้น 4' : 'รถตู้ส่วนกลาง ทะเบียน 1กข-9999',
+            resource_type: bookResource === 'room-1' ? 'ROOM' : 'VEHICLE',
+            purpose: bookPurpose,
+            attendees: bookAttendees,
+            start_time: bookStart,
+            end_time: bookEnd,
+            requester_name: bookRequester,
+            requester_email: 'contact@faculty.ac.th',
+            note: 'ส่งคำขอจองผ่านเว็บพอร์ทัล'
+          })
+        })
+        .then(r => r.json())
+        .then(res => {
+          setBookSubmitting(false);
+          if (res.error) {
+            alert(res.error);
+          } else {
+            alert('ส่งคำขอจองสำเร็จ!');
+            setShowBookingModal(false);
+            setBookPurpose('');
+            setBookRequester('');
+            loadData();
+          }
+        })
+        .catch(err => {
+          setBookSubmitting(false);
+          alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+        });
+      };
+
+      const handleCreateDoc = (e) => {
+        e.preventDefault();
+        setDocSubmitting(true);
+        fetch('api.php?action=documents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: docTitle,
+            doc_type: docType,
+            urgency: docUrgency,
+            requester_name: docRequester,
+            content: docContent
+          })
+        })
+        .then(r => r.json())
+        .then(res => {
+          setDocSubmitting(false);
+          if (res.error) {
+            alert(res.error);
+          } else {
+            alert('ยื่นคำขออนุมัติเอกสารเรียบร้อย! เลขที่: ' + res.doc_number);
+            setShowDocModal(false);
+            setDocTitle('');
+            setDocContent('');
+            setDocRequester('');
+            loadData();
+          }
+        })
+        .catch(err => {
+          setDocSubmitting(false);
+          alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+        });
+      };
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          {/* Header */}
+          <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200 shadow-xs">
+            <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+              <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('home')}>
+                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl shadow-md">
+                  F
+                </div>
+                <div>
+                  <h1 className="font-bold text-sm sm:text-base text-slate-800 leading-tight">
+                    {t.brandTitle}
+                  </h1>
+                  <p className="text-xs text-slate-500 hidden sm:block">
+                    {t.brandTagline}
+                  </p>
+                </div>
+              </div>
+
+              {/* Navigation Menu */}
+              <nav className="hidden md:flex items-center gap-1 text-sm font-medium">
+                <button onClick={() => setActiveTab('home')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'home' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}>{t.navHome}</button>
+                <button onClick={() => setActiveTab('news')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'news' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}>{t.navNews}</button>
+                <button onClick={() => setActiveTab('programs')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'programs' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}>{t.navPrograms}</button>
+                <button onClick={() => setActiveTab('staff')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'staff' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}>{t.navPersonnel}</button>
+                <button onClick={() => setActiveTab('bookings')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'bookings' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}>{t.navBookings}</button>
+                <button onClick={() => setActiveTab('documents')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'documents' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}>{t.navDocuments}</button>
+              </nav>
+
+              {/* Language Switcher */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={cycleLang}
+                  className="px-3 py-1 rounded-md border border-slate-300 hover:bg-slate-100 font-bold text-xs uppercase tracking-wider text-blue-700 bg-white transition-all shadow-xs"
+                  title="สลับภาษา / Switch Language / 切换语言"
+                >
+                  {lang.toUpperCase()}
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* Mobile Navigation Sub-bar */}
+          <div className="md:hidden bg-slate-100 border-b border-slate-200 px-4 py-2 flex items-center justify-between overflow-x-auto gap-2 text-xs font-medium">
+            <button onClick={() => setActiveTab('home')} className={`px-2.5 py-1 rounded whitespace-nowrap ${activeTab === 'home' ? 'bg-blue-600 text-white' : 'text-slate-700'}`}>{t.navHome}</button>
+            <button onClick={() => setActiveTab('news')} className={`px-2.5 py-1 rounded whitespace-nowrap ${activeTab === 'news' ? 'bg-blue-600 text-white' : 'text-slate-700'}`}>{t.navNews}</button>
+            <button onClick={() => setActiveTab('programs')} className={`px-2.5 py-1 rounded whitespace-nowrap ${activeTab === 'programs' ? 'bg-blue-600 text-white' : 'text-slate-700'}`}>{t.navPrograms}</button>
+            <button onClick={() => setActiveTab('staff')} className={`px-2.5 py-1 rounded whitespace-nowrap ${activeTab === 'staff' ? 'bg-blue-600 text-white' : 'text-slate-700'}`}>{t.navPersonnel}</button>
+            <button onClick={() => setActiveTab('bookings')} className={`px-2.5 py-1 rounded whitespace-nowrap ${activeTab === 'bookings' ? 'bg-blue-600 text-white' : 'text-slate-700'}`}>{t.navBookings}</button>
+            <button onClick={() => setActiveTab('documents')} className={`px-2.5 py-1 rounded whitespace-nowrap ${activeTab === 'documents' ? 'bg-blue-600 text-white' : 'text-slate-700'}`}>{t.navDocuments}</button>
+          </div>
+
+          {/* Main Content */}
+          <main className="flex-1">
+            {activeTab === 'home' && (
+              <div className="fade-in space-y-12 pb-16">
+                {/* Hero Section */}
+                <section className="bg-gradient-to-b from-blue-100/50 via-blue-50/30 to-slate-50 pt-16 pb-16 border-b border-slate-200/80">
+                  <div className="max-w-4xl mx-auto px-4 text-center space-y-5">
+                    <span className="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold tracking-wide">
+                      {t.brandTitle}
+                    </span>
+                    <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                      {t.heroTitle1} <br/>
+                      <span className="text-blue-600">{t.heroTitle2}</span>
+                    </h1>
+                    <p className="text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                      {t.heroDesc}
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                      <button onClick={() => setActiveTab('programs')} className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-md transition-all">
+                        {t.explorePrograms}
+                      </button>
+                      <button onClick={() => setActiveTab('news')} className="px-5 py-2.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-semibold shadow-xs transition-all">
+                        {t.allNews}
+                      </button>
+                    </div>
+
+                    {/* Metrics */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-10 border-t border-slate-200 max-w-2xl mx-auto">
+                      <div className="p-3 bg-white/60 rounded-xl border border-slate-200/60 shadow-xs">
+                        <div className="text-2xl font-bold text-slate-900">4</div>
+                        <div className="text-xs text-slate-500">หลักสูตรปริญญาตรี</div>
+                      </div>
+                      <div className="p-3 bg-white/60 rounded-xl border border-slate-200/60 shadow-xs">
+                        <div className="text-2xl font-bold text-slate-900">1,200+</div>
+                        <div className="text-xs text-slate-500">นักศึกษาปัจจุบัน</div>
+                      </div>
+                      <div className="p-3 bg-white/60 rounded-xl border border-slate-200/60 shadow-xs">
+                        <div className="text-2xl font-bold text-slate-900">50+</div>
+                        <div className="text-xs text-slate-500">คณาจารย์ผู้เชี่ยวชาญ</div>
+                      </div>
+                      <div className="p-3 bg-white/60 rounded-xl border border-slate-200/60 shadow-xs">
+                        <div className="text-2xl font-bold text-slate-900">95%</div>
+                        <div className="text-xs text-slate-500">อัตราการได้งานทำ</div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Featured News Section */}
+                <section className="max-w-6xl mx-auto px-4">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                      {t.featuredNews}
+                    </h2>
+                    <button onClick={() => setActiveTab('news')} className="text-xs font-semibold text-blue-600 hover:underline">
+                      {t.allNews} →
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {news.filter(n => n.is_pinned == 1).slice(0, 2).map(item => (
+                      <div key={item.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col">
+                        <img src={item.cover_image_url} alt={item.title} className="h-52 w-full object-cover" />
+                        <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                          <div className="space-y-2">
+                            <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
+                              {lang === 'en' ? item.category_en : lang === 'cn' ? item.category_cn : item.category_th}
+                            </span>
+                            <h3 className="font-bold text-base text-slate-900 leading-snug line-clamp-2">
+                              {item.title}
+                            </h3>
+                            <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                              {item.excerpt}
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t">
+                            <span>{item.published_at ? item.published_at.substring(0, 10) : ''}</span>
+                            <span className="text-blue-600 font-medium">{t.readMore}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {/* News Tab */}
+            {activeTab === 'news' && (
+              <div className="fade-in max-w-6xl mx-auto px-4 py-8 space-y-6">
+                <div className="flex items-center justify-between border-b pb-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-900">{t.navNews}</h2>
+                    <p className="text-xs text-slate-500">ข่าวสารประชาสัมพันธ์ ประกาศ และกิจกรรมล่าสุด</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {news.map(item => (
+                    <div key={item.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col">
+                      <img src={item.cover_image_url} alt={item.title} className="h-44 w-full object-cover" />
+                      <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                        <div className="space-y-2">
+                          <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                            {lang === 'en' ? item.category_en : lang === 'cn' ? item.category_cn : item.category_th}
+                          </span>
+                          <h3 className="font-bold text-sm text-slate-900 line-clamp-2 leading-snug">
+                            {item.title}
+                          </h3>
+                          <p className="text-xs text-slate-500 line-clamp-2">
+                            {item.excerpt}
+                          </p>
+                        </div>
+                        <div className="text-[11px] text-slate-400 pt-2 border-t flex justify-between">
+                          <span>{item.published_at ? item.published_at.substring(0, 10) : ''}</span>
+                          <span className="text-blue-600">{t.readMore}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Programs Tab */}
+            {activeTab === 'programs' && (
+              <div className="fade-in max-w-5xl mx-auto px-4 py-8 space-y-6">
+                <div className="border-b pb-4">
+                  <h2 className="text-2xl font-bold text-slate-900">{t.navPrograms}</h2>
+                  <p className="text-xs text-slate-500">หลักสูตรที่มุ่งเน้นการลงมือปฏิบัติจริง พร้อมตอบสนองภาคอุตสาหกรรมดิจิทัล</p>
+                </div>
+
+                <div className="space-y-4">
+                  {programs.map(p => (
+                    <div key={p.id} className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs hover:border-blue-400 transition-all space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-700">{p.code}</span>
+                            <span className="text-xs text-slate-500">{lang === 'en' ? p.degree_name_en : lang === 'cn' ? p.degree_name_cn : p.degree_name_th}</span>
+                          </div>
+                          <h3 className="text-lg font-bold text-slate-900">
+                            {lang === 'en' ? p.name_en : lang === 'cn' ? p.name_cn : p.name_th}
+                          </h3>
+                        </div>
+                        <div className="sm:text-right">
+                          <span className="text-xs text-slate-500">{t.tuitionFee}</span>
+                          <div className="text-base font-bold text-blue-600">
+                            {Number(p.tuition_fee_semester).toLocaleString()} {t.termSuffix}
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-600 leading-relaxed">{p.description}</p>
+
+                      <div className="flex flex-wrap items-center justify-between gap-4 pt-2 text-xs text-slate-500">
+                        <div className="flex items-center gap-4">
+                          <span>{t.duration}: {p.duration_years} {t.years}</span>
+                          <span>{t.totalCredits}: {p.total_credits} {t.credits}</span>
+                          <span className="text-emerald-600 font-medium">✓ {t.openAdmission}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Staff Tab */}
+            {activeTab === 'staff' && (
+              <div className="fade-in max-w-6xl mx-auto px-4 py-8 space-y-6">
+                <div className="border-b pb-4">
+                  <h2 className="text-2xl font-bold text-slate-900">{t.navPersonnel}</h2>
+                  <p className="text-xs text-slate-500">ทำเนียบคณาจารย์และบุคลากรผู้เชี่ยวชาญประจำคณะ</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {staff.map(s => (
+                    <div key={s.id} className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs text-center space-y-3 hover:shadow-md transition-all">
+                      <img src={s.avatar_url} alt={s.first_name_th} className="w-24 h-24 rounded-full mx-auto object-cover border-2 border-blue-500 shadow-xs" />
+                      <div>
+                        <h3 className="font-bold text-sm text-slate-900">
+                          {s.academic_title} {lang === 'en' ? `${s.first_name_en} ${s.last_name_en}` : `${s.first_name_th} ${s.last_name_th}`}
+                        </h3>
+                        <p className="text-xs text-blue-600 font-medium">{s.position}</p>
+                        <p className="text-[11px] text-slate-500 mt-1">
+                          {lang === 'en' ? s.department_en : lang === 'cn' ? s.department_cn : s.department_th}
+                        </p>
+                      </div>
+                      <div className="pt-2 border-t text-[11px] text-slate-500 space-y-1 text-left">
+                        <p>✉️ {s.email}</p>
+                        <p>📞 ต่อ {s.phone_ext} ({s.room_number})</p>
+                        <p className="text-slate-600 font-medium line-clamp-1">💡 {s.expertise}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Bookings Tab */}
+            {activeTab === 'bookings' && (
+              <div className="fade-in max-w-5xl mx-auto px-4 py-8 space-y-6">
+                <div className="flex items-center justify-between border-b pb-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-900">{t.navBookings}</h2>
+                    <p className="text-xs text-slate-500">ระบบจองห้องประชุมและยานพาหนะส่วนกลาง อาคาร 92 ปี ปัญญานันทะ</p>
+                  </div>
+                  <button onClick={() => setShowBookingModal(true)} className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs">
+                    + {t.newBooking}
+                  </button>
+                </div>
+
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+                  <div className="divide-y">
+                    {bookings.map(b => (
+                      <div key={b.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-sm text-slate-900">{b.resource_name}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${b.status === 'CONFIRMED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                              {b.status === 'CONFIRMED' ? t.statusConfirmed : t.statusPending}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-600"><strong>วัตถุประสงค์:</strong> {b.purpose} ({b.attendees} คน)</p>
+                          <p className="text-[11px] text-slate-400">📅 {b.start_time} - {b.end_time}</p>
+                        </div>
+                        <div className="text-xs text-slate-500 sm:text-right">
+                          <div><strong>ผู้จอง:</strong> {b.requester_name}</div>
+                          <div className="text-[11px] text-slate-400">{b.note}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {bookings.length === 0 && (
+                      <div className="p-8 text-center text-xs text-slate-400">ยังไม่มีรายการจองในระบบ</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Documents Tab */}
+            {activeTab === 'documents' && (
+              <div className="fade-in max-w-5xl mx-auto px-4 py-8 space-y-6">
+                <div className="flex items-center justify-between border-b pb-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-900">{t.navDocuments}</h2>
+                    <p className="text-xs text-slate-500">ระบบสารบรรณและอนุมัติเอกสารแบบ Paperless</p>
+                  </div>
+                  <button onClick={() => setShowDocModal(true)} className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs">
+                    + {t.newDoc}
+                  </button>
+                </div>
+
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+                  <div className="divide-y">
+                    {documents.map(d => (
+                      <div key={d.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{d.doc_number}</span>
+                            <span className="font-bold text-sm text-slate-900">{d.title}</span>
+                          </div>
+                          <p className="text-xs text-slate-600"><strong>ประเภท:</strong> {d.doc_type} | <strong>ความเร่งด่วน:</strong> {d.urgency}</p>
+                          <p className="text-xs text-slate-500">{d.content}</p>
+                        </div>
+                        <div className="text-xs text-slate-500 sm:text-right">
+                          <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded ${d.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                            {d.status === 'APPROVED' ? t.statusApproved : t.statusPending} (ขั้นที่ {d.step}/{d.max_steps})
+                          </span>
+                          <div className="text-[11px] text-slate-400 mt-1">ผู้ยื่น: {d.requester_name}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {documents.length === 0 && (
+                      <div className="p-8 text-center text-xs text-slate-400">ยังไม่มีเอกสารในระบบ</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+
+          {/* Booking Modal */}
+          {showBookingModal && (
+            <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <h3 className="font-bold text-base text-slate-900">ทำรายการจองใหม่</h3>
+                  <button onClick={() => setShowBookingModal(false)} className="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+                </div>
+                <form onSubmit={handleCreateBooking} className="space-y-3 text-xs">
+                  <div>
+                    <label className="block text-slate-700 font-medium mb-1">เลือกทรัพยากร/สถานที่</label>
+                    <select value={bookResource} onChange={e => setBookResource(e.target.value)} className="w-full p-2 border rounded-lg">
+                      <option value="room-1">ห้องประชุมปัญญานันทะ ชั้น 4</option>
+                      <option value="van-1">รถตู้ส่วนกลาง ทะเบียน 1กข-9999</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-medium mb-1">วัตถุประสงค์การใช้</label>
+                    <input type="text" required value={bookPurpose} onChange={e => setBookPurpose(e.target.value)} placeholder="เช่น ประชุมวางแผนงานวิชาการ" className="w-full p-2 border rounded-lg" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">จำนวนผู้เข้าร่วม (คน)</label>
+                      <input type="number" required value={bookAttendees} onChange={e => setBookAttendees(e.target.value)} className="w-full p-2 border rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">ชื่อผู้ขอจอง</label>
+                      <input type="text" required value={bookRequester} onChange={e => setBookRequester(e.target.value)} placeholder="ชื่อ-นามสกุล" className="w-full p-2 border rounded-lg" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">เวลาเริ่ม</label>
+                      <input type="datetime-local" required value={bookStart} onChange={e => setBookStart(e.target.value)} className="w-full p-2 border rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">เวลาสิ้นสุด</label>
+                      <input type="datetime-local" required value={bookEnd} onChange={e => setBookEnd(e.target.value)} className="w-full p-2 border rounded-lg" />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-2 pt-3 border-t">
+                    <button type="button" onClick={() => setShowBookingModal(false)} className="px-4 py-2 rounded-lg border text-slate-600">ยกเลิก</button>
+                    <button type="submit" disabled={bookSubmitting} className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold">{bookSubmitting ? 'กำลังบันทึก...' : 'ยืนยันการจอง'}</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Document Modal */}
+          {showDocModal && (
+            <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <h3 className="font-bold text-base text-slate-900">ยื่นคำขออนุมัติเอกสารใหม่</h3>
+                  <button onClick={() => setShowDocModal(false)} className="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+                </div>
+                <form onSubmit={handleCreateDoc} className="space-y-3 text-xs">
+                  <div>
+                    <label className="block text-slate-700 font-medium mb-1">เรื่อง / หัวข้อเอกสาร</label>
+                    <input type="text" required value={docTitle} onChange={e => setDocTitle(e.target.value)} placeholder="เช่น ขออนุมัติจัดซื้ออุปกรณ์ห้องปฏิบัติการ" className="w-full p-2 border rounded-lg" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">ประเภทเอกสาร</label>
+                      <select value={docType} onChange={e => setDocType(e.target.value)} className="w-full p-2 border rounded-lg">
+                        <option value="MEMO">บันทึกข้อความภายใน</option>
+                        <option value="PURCHASE">ขออนุมัติจัดซื้อ/จัดจ้าง</option>
+                        <option value="LEAVE">ขออนุมัติลาพักผ่อน/ลากิจ</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">ความเร่งด่วน</label>
+                      <select value={docUrgency} onChange={e => setDocUrgency(e.target.value)} className="w-full p-2 border rounded-lg">
+                        <option value="NORMAL">ปกติ</option>
+                        <option value="URGENT">ด่วน</option>
+                        <option value="VERY_URGENT">ด่วนที่สุด</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-medium mb-1">ชื่อผู้ยื่นคำขอ</label>
+                    <input type="text" required value={docRequester} onChange={e => setDocRequester(e.target.value)} placeholder="ชื่อ-นามสกุล / ตำแหน่ง" className="w-full p-2 border rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-medium mb-1">รายละเอียดเนื้อความ</label>
+                    <textarea required rows="3" value={docContent} onChange={e => setDocContent(e.target.value)} placeholder="ระบุเหตุผลความจำเป็นและรายละเอียด..." className="w-full p-2 border rounded-lg"></textarea>
+                  </div>
+                  <div className="flex items-center justify-end gap-2 pt-3 border-t">
+                    <button type="button" onClick={() => setShowDocModal(false)} className="px-4 py-2 rounded-lg border text-slate-600">ยกเลิก</button>
+                    <button type="submit" disabled={docSubmitting} className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold">{docSubmitting ? 'กำลังยื่นคำขอ...' : 'ยื่นขออนุมัติ'}</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <footer className="border-t bg-slate-900 text-slate-300 py-10 text-xs">
+            <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-white font-bold text-sm">
+                  <span className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center text-xs">F</span>
+                  {t.brandTitle}
+                </div>
+                <p className="text-slate-400 leading-relaxed">{t.brandTagline}</p>
+                <p className="text-slate-500 pt-2">© {new Date().getFullYear()} {t.footerCopyright}</p>
+              </div>
+              <div>
+                <h4 className="font-bold text-white mb-2 text-sm">ระบบบริการ</h4>
+                <ul className="space-y-1 text-slate-400">
+                  <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('programs')}>หลักสูตรการศึกษาปริญญาตรีและบัณฑิตศึกษา</li>
+                  <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('bookings')}>ระบบจองห้องประชุมและยานพาหนะ</li>
+                  <li className="cursor-pointer hover:text-white" onClick={() => setActiveTab('documents')}>ระบบสารบรรณและอนุมัติเอกสารราชการ</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-bold text-white mb-2 text-sm">{t.contactUs}</h4>
+                <p className="text-slate-400 leading-relaxed">{t.address}</p>
+                <p className="text-slate-400 mt-2">โทร: 035-248-000 ต่อ 9200</p>
+                <p className="text-slate-400">อีเมล: 92hotel@mcu.ac.th</p>
+              </div>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
