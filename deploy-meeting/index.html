@@ -61,7 +61,28 @@
         statusApproved: "อนุมัติครบถ้วน",
         footerCopyright: "สงวนลิขสิทธิ์ อาคาร 92 ปี ปัญญานันทะ มจร.",
         contactUs: "ติดต่อเรา",
-        address: "อาคาร 92 ปี ปัญญานันทะ มจร. ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา"
+        address: "อาคาร 92 ปี ปัญญานันทะ มจร. ต.ลำไทร อ.วังน้อย จ.พระนครศรีอยุธยา",
+        adminMode: "โหมด Admin",
+        adminDashboard: "แผงควบคุมระบบ",
+        adminLogin: "เข้าสู่ระบบ Admin",
+        adminLogout: "ออกจากระบบ",
+        adminAuthTitle: "เข้าสู่ระบบผู้ดูแลระบบ (Admin)",
+        adminAuthDesc: "กรอกบัญชีผู้ใช้และรหัสผ่านเพื่อจัดการข้อมูลหลังบ้าน",
+        username: "ชื่อผู้ใช้",
+        password: "รหัสผ่าน",
+        loginBtn: "เข้าสู่ระบบ",
+        cancelBtn: "ยกเลิก",
+        approve: "อนุมัติ",
+        reject: "ปฏิเสธ",
+        delete: "ลบ",
+        stepApprove: "ลงนามอนุมัติ (ขั้น 2)",
+        stepReject: "ไม่อนุมัติ / ตีกลับ",
+        tabAdminBookings: "จัดการคำขอจอง",
+        tabAdminDocs: "จัดการเอกสารสารบรรณ",
+        tabAdminNews: "จัดการข่าวสาร",
+        tabAdminStaff: "จัดการคณาจารย์",
+        addNews: "+ เขียนข่าวใหม่",
+        addStaff: "+ เพิ่มบุคลากร"
       },
       en: {
         brandTitle: "Faculty of Management & Information Technology",
@@ -94,7 +115,28 @@
         statusApproved: "Approved",
         footerCopyright: "All rights reserved. 92nd Anniversary Building, MCU.",
         contactUs: "Contact Us",
-        address: "92nd Anniversary Phanyananta Building, MCU, Ayutthaya, Thailand"
+        address: "92nd Anniversary Phanyananta Building, MCU, Ayutthaya, Thailand",
+        adminMode: "Admin Mode",
+        adminDashboard: "Admin Console",
+        adminLogin: "Admin Login",
+        adminLogout: "Logout",
+        adminAuthTitle: "Administrator Sign In",
+        adminAuthDesc: "Enter your username and password to access backoffice controls",
+        username: "Username",
+        password: "Password",
+        loginBtn: "Sign In",
+        cancelBtn: "Cancel",
+        approve: "Approve",
+        reject: "Reject",
+        delete: "Delete",
+        stepApprove: "Sign & Approve (Step 2)",
+        stepReject: "Reject / Return",
+        tabAdminBookings: "Manage Bookings",
+        tabAdminDocs: "Manage e-Docs",
+        tabAdminNews: "Manage News",
+        tabAdminStaff: "Manage Staff",
+        addNews: "+ Add News",
+        addStaff: "+ Add Staff"
       },
       cn: {
         brandTitle: "管理与信息技术学院",
@@ -127,7 +169,28 @@
         statusApproved: "已完成审批",
         footerCopyright: "版权所有 92周年帕雅南达大楼 MCU",
         contactUs: "联系我们",
-        address: "泰国大城府 摩诃朱拉隆功大学 92周年帕雅南达大楼"
+        address: "泰国大城府 摩诃朱拉隆功大学 92周年帕雅南达大楼",
+        adminMode: "管理员模式",
+        adminDashboard: "后台控制台",
+        adminLogin: "管理员登录",
+        adminLogout: "退出登录",
+        adminAuthTitle: "管理员登录",
+        adminAuthDesc: "输入账号和密码以进入后台管理面板",
+        username: "用户名",
+        password: "密码",
+        loginBtn: "登录",
+        cancelBtn: "取消",
+        approve: "批准",
+        reject: "驳回",
+        delete: "删除",
+        stepApprove: "签署批准 (第2步)",
+        stepReject: "驳回退回",
+        tabAdminBookings: "预订管理",
+        tabAdminDocs: "公文审批管理",
+        tabAdminNews: "新闻管理",
+        tabAdminStaff: "师资管理",
+        addNews: "+ 发布新闻",
+        addStaff: "+ 添加教师"
       }
     };
 
@@ -160,7 +223,199 @@
       const [docContent, setDocContent] = useState('');
       const [docSubmitting, setDocSubmitting] = useState(false);
 
+      // Admin authentication state
+      const [isAdmin, setIsAdmin] = useState(() => sessionStorage.getItem('fms_admin_logged') === '1');
+      const [showLoginModal, setShowLoginModal] = useState(false);
+      const [loginUser, setLoginUser] = useState('');
+      const [loginPass, setLoginPass] = useState('');
+      const [loginError, setLoginError] = useState('');
+
+      // Admin create News state
+      const [showAddNewsModal, setShowAddNewsModal] = useState(false);
+      const [newsTitle, setNewsTitle] = useState('');
+      const [newsCategoryTh, setNewsCategoryTh] = useState('ข่าวสารทั่วไป');
+      const [newsCategoryEn, setNewsCategoryEn] = useState('General News');
+      const [newsCategoryCn, setNewsCategoryCn] = useState('通用新闻');
+      const [newsExcerpt, setNewsExcerpt] = useState('');
+      const [newsContent, setNewsContent] = useState('');
+      const [newsImage, setNewsImage] = useState('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800');
+      const [newsPinned, setNewsPinned] = useState(false);
+
+      // Admin create Staff state
+      const [showAddStaffModal, setShowAddStaffModal] = useState(false);
+      const [staffTitle, setStaffTitle] = useState('ดร.');
+      const [staffFnTh, setStaffFnTh] = useState('');
+      const [staffLnTh, setStaffLnTh] = useState('');
+      const [staffFnEn, setStaffFnEn] = useState('');
+      const [staffLnEn, setStaffLnEn] = useState('');
+      const [staffDeptTh, setStaffDeptTh] = useState('สาขาวิชาเทคโนโลยีสารสนเทศ');
+      const [staffDeptEn, setStaffDeptEn] = useState('Information Technology');
+      const [staffDeptCn, setStaffDeptCn] = useState('信息技术专业');
+      const [staffPos, setStaffPos] = useState('อาจารย์ประจำ');
+      const [staffEmail, setStaffEmail] = useState('');
+      const [staffPhone, setStaffPhone] = useState('9200');
+      const [staffRoom, setStaffRoom] = useState('401');
+      const [staffAvatar, setStaffAvatar] = useState('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400');
+      const [staffExpertise, setStaffExpertise] = useState('Data Science, AI');
+
+      // Admin Sub-tab inside Admin mode
+      const [adminSubTab, setAdminSubTab] = useState('bookings');
+
       const t = DICT[lang] || DICT.th;
+
+      const handleLogin = (e) => {
+        e.preventDefault();
+        setLoginError('');
+        // Accept webadmin / kRG4FhZ97wHMda5K or admin / Passw0rd!vibe
+        if (
+          (loginUser === 'webadmin' && loginPass === 'kRG4FhZ97wHMda5K') ||
+          (loginUser === 'admin' && (loginPass === 'Passw0rd!vibe' || loginPass === 'kRG4FhZ97wHMda5K'))
+        ) {
+          sessionStorage.setItem('fms_admin_logged', '1');
+          setIsAdmin(true);
+          setShowLoginModal(false);
+          setLoginUser('');
+          setLoginPass('');
+          setActiveTab('admin');
+        } else {
+          setLoginError('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง (Invalid username or password)');
+        }
+      };
+
+      const handleLogout = () => {
+        sessionStorage.removeItem('fms_admin_logged');
+        setIsAdmin(false);
+        if (activeTab === 'admin') {
+          setActiveTab('home');
+        }
+      };
+
+      // Admin Actions: Bookings
+      const handleUpdateBookingStatus = (id, status) => {
+        if (!confirm(`ยืนยันเปลี่ยนสถานะเป็น ${status}?`)) return;
+        fetch('api.php?action=bookings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, status })
+        })
+        .then(r => r.json())
+        .then(res => {
+          loadData();
+        })
+        .catch(err => alert('เกิดข้อผิดพลาด'));
+      };
+
+      const handleDeleteBooking = (id) => {
+        if (!confirm('ยืนยันลบรายการจองนี้?')) return;
+        fetch(`api.php?action=bookings&id=${id}`, { method: 'DELETE' })
+          .then(r => r.json())
+          .then(() => loadData())
+          .catch(() => alert('เกิดข้อผิดพลาดในการลบ'));
+      };
+
+      // Admin Actions: Documents
+      const handleUpdateDocStatus = (id, status, step) => {
+        if (!confirm(`ยืนยันการ${status === 'APPROVED' ? 'อนุมัติ' : 'ปรับสถานะ'}?`)) return;
+        fetch('api.php?action=documents', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, status, step })
+        })
+        .then(r => r.json())
+        .then(() => loadData())
+        .catch(() => alert('เกิดข้อผิดพลาด'));
+      };
+
+      const handleDeleteDoc = (id) => {
+        if (!confirm('ยืนยันลบเอกสารนี้?')) return;
+        fetch(`api.php?action=documents&id=${id}`, { method: 'DELETE' })
+          .then(r => r.json())
+          .then(() => loadData())
+          .catch(() => alert('เกิดข้อผิดพลาดในการลบ'));
+      };
+
+      // Admin Actions: News
+      const handleCreateNews = (e) => {
+        e.preventDefault();
+        fetch('api.php?action=news', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: newsTitle,
+            slug: 'news-' + Date.now(),
+            category: newsCategoryTh,
+            category_th: newsCategoryTh,
+            category_en: newsCategoryEn,
+            category_cn: newsCategoryCn,
+            excerpt: newsExcerpt,
+            content: newsContent,
+            cover_image_url: newsImage,
+            is_pinned: newsPinned ? 1 : 0
+          })
+        })
+        .then(r => r.json())
+        .then(res => {
+          setShowAddNewsModal(false);
+          setNewsTitle('');
+          setNewsExcerpt('');
+          setNewsContent('');
+          loadData();
+          alert('เพิ่มข่าวเรียบร้อย!');
+        })
+        .catch(() => alert('เกิดข้อผิดพลาดในการบันทึกข่าว'));
+      };
+
+      const handleDeleteNews = (id) => {
+        if (!confirm('ยืนยันลบข่าวนี้?')) return;
+        fetch(`api.php?action=delete_news&id=${id}`, { method: 'DELETE' })
+          .then(r => r.json())
+          .then(() => loadData())
+          .catch(() => alert('เกิดข้อผิดพลาดในการลบ'));
+      };
+
+      // Admin Actions: Staff
+      const handleCreateStaff = (e) => {
+        e.preventDefault();
+        fetch('api.php?action=staff', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            academic_title: staffTitle,
+            first_name_th: staffFnTh,
+            last_name_th: staffLnTh,
+            first_name_en: staffFnEn,
+            last_name_en: staffLnEn,
+            department_th: staffDeptTh,
+            department_en: staffDeptEn,
+            department_cn: staffDeptCn,
+            position: staffPos,
+            email: staffEmail,
+            phone_ext: staffPhone,
+            room_number: staffRoom,
+            avatar_url: staffAvatar,
+            expertise: staffExpertise,
+            sort_order: 10
+          })
+        })
+        .then(r => r.json())
+        .then(() => {
+          setShowAddStaffModal(false);
+          setStaffFnTh('');
+          setStaffLnTh('');
+          setStaffEmail('');
+          loadData();
+          alert('เพิ่มบุคลากรเรียบร้อย!');
+        })
+        .catch(() => alert('เกิดข้อผิดพลาดในการเพิ่ม'));
+      };
+
+      const handleDeleteStaff = (id) => {
+        if (!confirm('ยืนยันลบข้อมูลบุคลากรนี้?')) return;
+        fetch(`api.php?action=staff&id=${id}`, { method: 'DELETE' })
+          .then(r => r.json())
+          .then(() => loadData())
+          .catch(() => alert('เกิดข้อผิดพลาดในการลบ'));
+      };
 
       const cycleLang = () => {
         if (lang === 'th') setLang('en');
@@ -298,10 +553,38 @@
                 <button onClick={() => setActiveTab('staff')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'staff' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}>{t.navPersonnel}</button>
                 <button onClick={() => setActiveTab('bookings')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'bookings' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}>{t.navBookings}</button>
                 <button onClick={() => setActiveTab('documents')} className={`px-3 py-1.5 rounded-lg transition-colors ${activeTab === 'documents' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}>{t.navDocuments}</button>
+                {isAdmin && (
+                  <button onClick={() => setActiveTab('admin')} className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${activeTab === 'admin' ? 'bg-amber-100 text-amber-900 font-bold' : 'text-amber-700 hover:bg-amber-50'}`}>
+                    <span>⚙️</span> {t.adminDashboard}
+                  </button>
+                )}
               </nav>
 
-              {/* Language Switcher */}
+              {/* Right Controls: Admin Toggle & Language */}
               <div className="flex items-center gap-2">
+                {isAdmin ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="hidden sm:inline-block text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                      ADMIN
+                    </span>
+                    <button
+                      onClick={handleLogout}
+                      className="px-2.5 py-1 text-xs font-semibold text-rose-600 border border-rose-200 hover:bg-rose-50 rounded-lg transition-colors"
+                      title={t.adminLogout}
+                    >
+                      {t.adminLogout}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="px-3 py-1 text-xs font-semibold text-slate-700 border border-slate-300 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-1 shadow-xs"
+                    title={t.adminLogin}
+                  >
+                    <span>🔒</span> <span className="hidden sm:inline">{t.adminMode}</span>
+                  </button>
+                )}
+
                 <button
                   onClick={cycleLang}
                   className="px-3 py-1 rounded-md border border-slate-300 hover:bg-slate-100 font-bold text-xs uppercase tracking-wider text-blue-700 bg-white transition-all shadow-xs"
@@ -321,6 +604,9 @@
             <button onClick={() => setActiveTab('staff')} className={`px-2.5 py-1 rounded whitespace-nowrap ${activeTab === 'staff' ? 'bg-blue-600 text-white' : 'text-slate-700'}`}>{t.navPersonnel}</button>
             <button onClick={() => setActiveTab('bookings')} className={`px-2.5 py-1 rounded whitespace-nowrap ${activeTab === 'bookings' ? 'bg-blue-600 text-white' : 'text-slate-700'}`}>{t.navBookings}</button>
             <button onClick={() => setActiveTab('documents')} className={`px-2.5 py-1 rounded whitespace-nowrap ${activeTab === 'documents' ? 'bg-blue-600 text-white' : 'text-slate-700'}`}>{t.navDocuments}</button>
+            {isAdmin && (
+              <button onClick={() => setActiveTab('admin')} className={`px-2.5 py-1 rounded whitespace-nowrap font-bold ${activeTab === 'admin' ? 'bg-amber-600 text-white' : 'bg-amber-200 text-amber-900'}`}>⚙️ {t.adminDashboard}</button>
+            )}
           </div>
 
           {/* Main Content */}
@@ -605,6 +891,213 @@
                 </div>
               </div>
             )}
+
+            {/* Admin Console View */}
+            {activeTab === 'admin' && isAdmin && (
+              <div className="fade-in max-w-6xl mx-auto px-4 py-8 space-y-6">
+                <div className="bg-gradient-to-r from-slate-900 to-blue-950 text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded bg-amber-400 text-slate-950 font-bold text-xs">BACKOFFICE</span>
+                      <h2 className="text-xl font-bold">{t.adminDashboard}</h2>
+                    </div>
+                    <p className="text-xs text-slate-300 mt-1">จัดการอนุมัติคำขอจอง ตรวจสอบเอกสารสารบรรณ ปรับปรุงข่าวและรายชื่อคณาจารย์</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button onClick={loadData} className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold border border-white/20 transition-colors">
+                      🔄 รีเฟรชข้อมูล
+                    </button>
+                    <button onClick={handleLogout} className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-xs font-semibold transition-colors">
+                      {t.adminLogout}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sub-nav inside Admin Mode */}
+                <div className="flex border-b border-slate-200 overflow-x-auto gap-2 text-xs font-semibold">
+                  <button
+                    onClick={() => setAdminSubTab('bookings')}
+                    className={`pb-3 px-3 border-b-2 transition-colors whitespace-nowrap ${adminSubTab === 'bookings' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-900'}`}
+                  >
+                    📅 {t.tabAdminBookings} ({bookings.length})
+                  </button>
+                  <button
+                    onClick={() => setAdminSubTab('documents')}
+                    className={`pb-3 px-3 border-b-2 transition-colors whitespace-nowrap ${adminSubTab === 'documents' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-900'}`}
+                  >
+                    📑 {t.tabAdminDocs} ({documents.length})
+                  </button>
+                  <button
+                    onClick={() => setAdminSubTab('news')}
+                    className={`pb-3 px-3 border-b-2 transition-colors whitespace-nowrap ${adminSubTab === 'news' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-900'}`}
+                  >
+                    📰 {t.tabAdminNews} ({news.length})
+                  </button>
+                  <button
+                    onClick={() => setAdminSubTab('staff')}
+                    className={`pb-3 px-3 border-b-2 transition-colors whitespace-nowrap ${adminSubTab === 'staff' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-900'}`}
+                  >
+                    👨‍🏫 {t.tabAdminStaff} ({staff.length})
+                  </button>
+                </div>
+
+                {/* Admin SubTab: Bookings Management */}
+                {adminSubTab === 'bookings' && (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-sm font-bold text-slate-800">รายการคำขอจองห้องประชุมและยานพาหนะ</h3>
+                      <button onClick={() => setShowBookingModal(true)} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium">+ เพิ่มรายการจอง</button>
+                    </div>
+                    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+                      <div className="divide-y text-xs">
+                        {bookings.map(b => (
+                          <div key={b.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-slate-50">
+                            <div className="space-y-1 max-w-xl">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-slate-900 text-sm">{b.resource_name}</span>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${b.status === 'CONFIRMED' ? 'bg-emerald-100 text-emerald-800' : b.status === 'REJECTED' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}`}>
+                                  {b.status}
+                                </span>
+                              </div>
+                              <p className="text-slate-600"><strong>วัตถุประสงค์:</strong> {b.purpose} ({b.attendees} คน)</p>
+                              <p className="text-slate-400">📅 {b.start_time} ถึง {b.end_time}</p>
+                              <p className="text-slate-500"><strong>ผู้ขอจอง:</strong> {b.requester_name} ({b.requester_email || '-'})</p>
+                              {b.note && <p className="text-slate-400 italic">หมายเหตุ: {b.note}</p>}
+                            </div>
+                            <div className="flex items-center gap-2 pt-2 md:pt-0 border-t md:border-t-0">
+                              {b.status !== 'CONFIRMED' && (
+                                <button onClick={() => handleUpdateBookingStatus(b.id, 'CONFIRMED')} className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
+                                  ✓ {t.approve}
+                                </button>
+                              )}
+                              {b.status !== 'REJECTED' && (
+                                <button onClick={() => handleUpdateBookingStatus(b.id, 'REJECTED')} className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold">
+                                  ✕ {t.reject}
+                                </button>
+                              )}
+                              <button onClick={() => handleDeleteBooking(b.id)} className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold border border-rose-200">
+                                🗑️ {t.delete}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                        {bookings.length === 0 && (
+                          <div className="p-8 text-center text-slate-400">ยังไม่มีรายการจอง</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Admin SubTab: Documents Management */}
+                {adminSubTab === 'documents' && (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-sm font-bold text-slate-800">รายการคำขออนุมัติเอกสารสารบรรณ</h3>
+                      <button onClick={() => setShowDocModal(true)} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium">+ ยื่นเอกสารใหม่</button>
+                    </div>
+                    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+                      <div className="divide-y text-xs">
+                        {documents.map(d => (
+                          <div key={d.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-slate-50">
+                            <div className="space-y-1 max-w-xl">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{d.doc_number}</span>
+                                <span className="font-bold text-slate-900 text-sm">{d.title}</span>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${d.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : d.status === 'REJECTED' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}`}>
+                                  {d.status} (ขั้นที่ {d.step}/{d.max_steps})
+                                </span>
+                              </div>
+                              <p className="text-slate-600"><strong>ประเภท:</strong> {d.doc_type} | <strong>ความเร่งด่วน:</strong> {d.urgency} | <strong>ผู้ยื่น:</strong> {d.requester_name}</p>
+                              <p className="text-slate-500 bg-slate-50 p-2 rounded border border-slate-100">{d.content}</p>
+                            </div>
+                            <div className="flex items-center gap-2 pt-2 md:pt-0 border-t md:border-t-0">
+                              {d.status !== 'APPROVED' && (
+                                <button onClick={() => handleUpdateDocStatus(d.id, 'APPROVED', 2)} className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold whitespace-nowrap">
+                                  ✓ {t.stepApprove}
+                                </button>
+                              )}
+                              {d.status !== 'REJECTED' && (
+                                <button onClick={() => handleUpdateDocStatus(d.id, 'REJECTED', 1)} className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold whitespace-nowrap">
+                                  ✕ {t.stepReject}
+                                </button>
+                              )}
+                              <button onClick={() => handleDeleteDoc(d.id)} className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold border border-rose-200">
+                                🗑️ {t.delete}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                        {documents.length === 0 && (
+                          <div className="p-8 text-center text-slate-400">ยังไม่มีเอกสาร</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Admin SubTab: News Management */}
+                {adminSubTab === 'news' && (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-sm font-bold text-slate-800">รายการข่าวสารและประกาศ</h3>
+                      <button onClick={() => setShowAddNewsModal(true)} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium">{t.addNews}</button>
+                    </div>
+                    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+                      <div className="divide-y text-xs">
+                        {news.map(item => (
+                          <div key={item.id} className="p-4 flex items-center justify-between gap-3 hover:bg-slate-50">
+                            <div className="flex items-center gap-3">
+                              <img src={item.cover_image_url} alt="" className="w-16 h-12 object-cover rounded-lg border" />
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-slate-900">{item.title}</span>
+                                  {item.is_pinned == 1 && <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">ปักหมุด</span>}
+                                </div>
+                                <p className="text-slate-500 line-clamp-1">{item.excerpt}</p>
+                                <p className="text-[10px] text-slate-400">หมวด: {item.category_th} | วันที่: {item.published_at ? item.published_at.substring(0, 10) : '-'}</p>
+                              </div>
+                            </div>
+                            <button onClick={() => handleDeleteNews(item.id)} className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold border border-rose-200">
+                              🗑️ {t.delete}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Admin SubTab: Staff Management */}
+                {adminSubTab === 'staff' && (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-sm font-bold text-slate-800">ทำเนียบคณาจารย์และบุคลากร</h3>
+                      <button onClick={() => setShowAddStaffModal(true)} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium">{t.addStaff}</button>
+                    </div>
+                    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
+                      <div className="divide-y text-xs">
+                        {staff.map(s => (
+                          <div key={s.id} className="p-4 flex items-center justify-between gap-3 hover:bg-slate-50">
+                            <div className="flex items-center gap-3">
+                              <img src={s.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover border" />
+                              <div>
+                                <div className="font-bold text-slate-900">{s.academic_title} {s.first_name_th} {s.last_name_th} ({s.position})</div>
+                                <p className="text-slate-500">{s.department_th} | ✉️ {s.email} | 📞 {s.phone_ext}</p>
+                                <p className="text-slate-400 text-[10px]">ความเชี่ยวชาญ: {s.expertise}</p>
+                              </div>
+                            </div>
+                            <button onClick={() => handleDeleteStaff(s.id)} className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold border border-rose-200">
+                              🗑️ {t.delete}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </main>
 
           {/* Booking Modal */}
@@ -698,6 +1191,187 @@
                   <div className="flex items-center justify-end gap-2 pt-3 border-t">
                     <button type="button" onClick={() => setShowDocModal(false)} className="px-4 py-2 rounded-lg border text-slate-600">ยกเลิก</button>
                     <button type="submit" disabled={docSubmitting} className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold">{docSubmitting ? 'กำลังยื่นคำขอ...' : 'ยื่นขออนุมัติ'}</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          {/* Admin Login Modal */}
+          {showLoginModal && (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-100">
+                <div className="flex items-center justify-between border-b pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm">🔒</span>
+                    <div>
+                      <h3 className="font-bold text-sm text-slate-900">{t.adminAuthTitle}</h3>
+                      <p className="text-[11px] text-slate-500">{t.adminMode}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setShowLoginModal(false)} className="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+                </div>
+
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {t.adminAuthDesc}
+                </p>
+
+                {loginError && (
+                  <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+                    {loginError}
+                  </div>
+                )}
+
+                <form onSubmit={handleLogin} className="space-y-3 text-xs">
+                  <div>
+                    <label className="block text-slate-700 font-semibold mb-1">{t.username}</label>
+                    <input
+                      type="text"
+                      required
+                      value={loginUser}
+                      onChange={e => setLoginUser(e.target.value)}
+                      placeholder="webadmin หรือ admin"
+                      className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-semibold mb-1">{t.password}</label>
+                    <input
+                      type="password"
+                      required
+                      value={loginPass}
+                      onChange={e => setLoginPass(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
+                  <div className="flex items-center justify-end gap-2 pt-3 border-t">
+                    <button type="button" onClick={() => setShowLoginModal(false)} className="px-4 py-2 rounded-lg border text-slate-600 hover:bg-slate-50 font-medium">
+                      {t.cancelBtn}
+                    </button>
+                    <button type="submit" className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-xs">
+                      {t.loginBtn}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Add News Modal (Admin) */}
+          {showAddNewsModal && (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <h3 className="font-bold text-base text-slate-900">{t.addNews}</h3>
+                  <button onClick={() => setShowAddNewsModal(false)} className="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+                </div>
+                <form onSubmit={handleCreateNews} className="space-y-3 text-xs">
+                  <div>
+                    <label className="block text-slate-700 font-medium mb-1">หัวข้อข่าวสาร</label>
+                    <input type="text" required value={newsTitle} onChange={e => setNewsTitle(e.target.value)} placeholder="เช่น ประกาศรับสมัครนักศึกษาใหม่ 2569" className="w-full p-2 border rounded-lg" />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">หมวดหมู่ (TH)</label>
+                      <input type="text" required value={newsCategoryTh} onChange={e => setNewsCategoryTh(e.target.value)} className="w-full p-2 border rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">หมวดหมู่ (EN)</label>
+                      <input type="text" required value={newsCategoryEn} onChange={e => setNewsCategoryEn(e.target.value)} className="w-full p-2 border rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">หมวดหมู่ (CN)</label>
+                      <input type="text" required value={newsCategoryCn} onChange={e => setNewsCategoryCn(e.target.value)} className="w-full p-2 border rounded-lg" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-medium mb-1">รูปภาพหน้าปก URL</label>
+                    <input type="url" required value={newsImage} onChange={e => setNewsImage(e.target.value)} className="w-full p-2 border rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-medium mb-1">บทคัดย่อสั้น (Excerpt)</label>
+                    <input type="text" required value={newsExcerpt} onChange={e => setNewsExcerpt(e.target.value)} placeholder="สรุปใจความสำคัญใน 1-2 ประโยค" className="w-full p-2 border rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-medium mb-1">เนื้อหาข่าวฉบับเต็ม</label>
+                    <textarea rows="4" required value={newsContent} onChange={e => setNewsContent(e.target.value)} placeholder="รายละเอียดข่าวสาร..." className="w-full p-2 border rounded-lg"></textarea>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" id="newsPinned" checked={newsPinned} onChange={e => setNewsPinned(e.target.checked)} className="rounded" />
+                    <label htmlFor="newsPinned" className="text-slate-700 font-medium">ปักหมุดไว้หน้าแรก (Featured News)</label>
+                  </div>
+                  <div className="flex items-center justify-end gap-2 pt-3 border-t">
+                    <button type="button" onClick={() => setShowAddNewsModal(false)} className="px-4 py-2 rounded-lg border text-slate-600">ยกเลิก</button>
+                    <button type="submit" className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold">เผยแพร่ข่าว</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Add Staff Modal (Admin) */}
+          {showAddStaffModal && (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <h3 className="font-bold text-base text-slate-900">{t.addStaff}</h3>
+                  <button onClick={() => setShowAddStaffModal(false)} className="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+                </div>
+                <form onSubmit={handleCreateStaff} className="space-y-3 text-xs">
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">คำนำหน้า/ตำแหน่งวิชาการ</label>
+                      <input type="text" required value={staffTitle} onChange={e => setStaffTitle(e.target.value)} placeholder="ผศ.ดร. / อาจารย์" className="w-full p-2 border rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">ชื่อ (ภาษาไทย)</label>
+                      <input type="text" required value={staffFnTh} onChange={e => setStaffFnTh(e.target.value)} className="w-full p-2 border rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">นามสกุล (ภาษาไทย)</label>
+                      <input type="text" required value={staffLnTh} onChange={e => setStaffLnTh(e.target.value)} className="w-full p-2 border rounded-lg" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">First Name (EN)</label>
+                      <input type="text" required value={staffFnEn} onChange={e => setStaffFnEn(e.target.value)} className="w-full p-2 border rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">Last Name (EN)</label>
+                      <input type="text" required value={staffLnEn} onChange={e => setStaffLnEn(e.target.value)} className="w-full p-2 border rounded-lg" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">ตำแหน่งทางบริหาร/หน้าที่</label>
+                      <input type="text" required value={staffPos} onChange={e => setStaffPos(e.target.value)} placeholder="อาจารย์ประจำหลักสูตร" className="w-full p-2 border rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">อีเมลติดต่อ</label>
+                      <input type="email" required value={staffEmail} onChange={e => setStaffEmail(e.target.value)} placeholder="teacher@faculty.ac.th" className="w-full p-2 border rounded-lg" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">เบอร์ภายใน</label>
+                      <input type="text" value={staffPhone} onChange={e => setStaffPhone(e.target.value)} className="w-full p-2 border rounded-lg" />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-medium mb-1">ห้องพักอาจารย์</label>
+                      <input type="text" value={staffRoom} onChange={e => setStaffRoom(e.target.value)} className="w-full p-2 border rounded-lg" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-medium mb-1">รูปโปรไฟล์ (Avatar URL)</label>
+                    <input type="url" required value={staffAvatar} onChange={e => setStaffAvatar(e.target.value)} className="w-full p-2 border rounded-lg" />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 font-medium mb-1">ความเชี่ยวชาญ (Expertise)</label>
+                    <input type="text" required value={staffExpertise} onChange={e => setStaffExpertise(e.target.value)} placeholder="เช่น Cloud Computing, AI, Database" className="w-full p-2 border rounded-lg" />
+                  </div>
+                  <div className="flex items-center justify-end gap-2 pt-3 border-t">
+                    <button type="button" onClick={() => setShowAddStaffModal(false)} className="px-4 py-2 rounded-lg border text-slate-600">ยกเลิก</button>
+                    <button type="submit" className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold">เพิ่มบุคลากร</button>
                   </div>
                 </form>
               </div>

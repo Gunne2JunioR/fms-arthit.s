@@ -258,6 +258,13 @@ if ($action === 'news') {
         $ins->execute();
         echo json_encode(['success' => true, 'id' => $id]);
         exit;
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+        $id = $_GET['id'] ?? '';
+        $del = $mysqli->prepare("DELETE FROM fms_staff WHERE id = ?");
+        $del->bind_param('s', $id);
+        $del->execute();
+        echo json_encode(['success' => true]);
+        exit;
     }
 } elseif ($action === 'programs') {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -292,11 +299,27 @@ if ($action === 'news') {
             exit;
         }
 
-        $ins = $mysqli->prepare("INSERT INTO fms_bookings (id, resource_id, resource_name, resource_type, purpose, attendees, start_time, end_time, requester_name, requester_email, status, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'CONFIRMED', ?)");
+        $ins = $mysqli->prepare("INSERT INTO fms_bookings (id, resource_id, resource_name, resource_type, purpose, attendees, start_time, end_time, requester_name, requester_email, status, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)");
         $att = intval($body['attendees'] ?? 1);
         $ins->bind_param('sssssisssss', $id, $body['resource_id'], $body['resource_name'], $body['resource_type'], $body['purpose'], $att, $body['start_time'], $body['end_time'], $body['requester_name'], $body['requester_email'], $body['note']);
         $ins->execute();
         echo json_encode(['success' => true, 'id' => $id]);
+        exit;
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+        $body = json_decode(file_get_contents('php://input'), true);
+        $id = $body['id'] ?? '';
+        $status = $body['status'] ?? 'CONFIRMED';
+        $upd = $mysqli->prepare("UPDATE fms_bookings SET status = ? WHERE id = ?");
+        $upd->bind_param('ss', $status, $id);
+        $upd->execute();
+        echo json_encode(['success' => true]);
+        exit;
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+        $id = $_GET['id'] ?? '';
+        $del = $mysqli->prepare("DELETE FROM fms_bookings WHERE id = ?");
+        $del->bind_param('s', $id);
+        $del->execute();
+        echo json_encode(['success' => true]);
         exit;
     }
 } elseif ($action === 'documents') {
@@ -317,7 +340,31 @@ if ($action === 'news') {
         $ins->execute();
         echo json_encode(['success' => true, 'id' => $id, 'doc_number' => $docNum]);
         exit;
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+        $body = json_decode(file_get_contents('php://input'), true);
+        $id = $body['id'] ?? '';
+        $status = $body['status'] ?? 'APPROVED';
+        $step = intval($body['step'] ?? 2);
+        $upd = $mysqli->prepare("UPDATE fms_documents SET status = ?, step = ? WHERE id = ?");
+        $upd->bind_param('sis', $status, $step, $id);
+        $upd->execute();
+        echo json_encode(['success' => true]);
+        exit;
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+        $id = $_GET['id'] ?? '';
+        $del = $mysqli->prepare("DELETE FROM fms_documents WHERE id = ?");
+        $del->bind_param('s', $id);
+        $del->execute();
+        echo json_encode(['success' => true]);
+        exit;
     }
+} elseif ($action === 'delete_news') {
+    $id = $_GET['id'] ?? '';
+    $del = $mysqli->prepare("DELETE FROM fms_news WHERE id = ?");
+    $del->bind_param('s', $id);
+    $del->execute();
+    echo json_encode(['success' => true]);
+    exit;
 } else {
     echo json_encode(['status' => 'online', 'message' => 'Faculty Web Platform API is running.']);
 }
