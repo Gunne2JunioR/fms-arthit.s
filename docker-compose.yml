@@ -35,6 +35,7 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-1234}@postgres:5432/${POSTGRES_DB:-ums_dev}?schema=public
       AUTH_SECRET: ${AUTH_SECRET:-NJxC5nl33e2lrh88Jm1lemXdsY1XxI7mouliucGyPAU=}
+      AUTH_TRUST_HOST: "true"
       APP_URL: ${APP_URL:-http://localhost:3010}
       PORT: 3010
       AUTO_SEED: ${AUTO_SEED:-1}
