@@ -14,6 +14,10 @@ export const updateSettingsSchema = z.object({
     .default(""),
   palette: z.enum(PALETTE_IDS),
 });
-export const updateProfileSchema = z.object({ name: z.string().trim().min(1).max(255), locale: z.enum(["th", "en"]) });
+export const updateProfileSchema = z.object({
+  name: z.string().trim().min(1).max(255),
+  locale: z.enum(["th", "en"]),
+  imageUrl: z.string().trim().max(500).nullish(),
+});
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

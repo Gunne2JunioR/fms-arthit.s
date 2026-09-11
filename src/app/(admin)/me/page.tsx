@@ -1,7 +1,17 @@
-import { requireSession } from "@/features/identity/server";
+import { requireSession, getProfile } from "@/features/identity/server";
 import { ProfileForm } from "./_components/profile-form";
 
 export default async function MePage() {
   const ctx = await requireSession();
-  return <ProfileForm initial={{ name: ctx.userName, locale: ctx.locale ?? "th", email: ctx.email }} />;
+  const profile = await getProfile(ctx.userId);
+  return (
+    <ProfileForm
+      initial={{
+        name: profile.name,
+        locale: (profile.locale as "th" | "en") ?? "th",
+        email: profile.email,
+        imageUrl: profile.imageUrl ?? "",
+      }}
+    />
+  );
 }

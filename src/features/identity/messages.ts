@@ -160,6 +160,12 @@ export const MESSAGES: Dictionary = {
   "settings.saveOk": { th: "บันทึกการตั้งค่าแล้ว", en: "Settings saved", cn: "系统设置已保存" },
   // me
   "me.title": { th: "โปรไฟล์ของฉัน", en: "My profile", cn: "个人信息" },
+  "me.avatar": { th: "รูปภาพโปรไฟล์", en: "Profile Picture", cn: "个人头像" },
+  "me.uploadAvatar": { th: "อัปโหลดรูปภาพ", en: "Upload Picture", cn: "上传头像" },
+  "me.uploading": { th: "กำลังอัปโหลด...", en: "Uploading...", cn: "上传中..." },
+  "me.uploadSuccess": { th: "อัปโหลดรูปภาพโปรไฟล์สำเร็จ", en: "Profile picture uploaded", cn: "头像上传成功" },
+  "me.removeAvatar": { th: "ลบรูปโปรไฟล์", en: "Remove Picture", cn: "移除头像" },
+  "me.avatarHint": { th: "รองรับไฟล์ PNG, JPG, WebP ขนาดไม่เกิน 5 MB", en: "Supports PNG, JPG, WebP up to 5 MB", cn: "支持 PNG、JPG、WebP 格式，最大 5 MB" },
   "me.name": { th: "ชื่อที่แสดง", en: "Display name", cn: "显示姓名" },
   "me.language": { th: "ภาษาที่ใช้", en: "Language", cn: "界面语言" },
   "me.localeTh": { th: "ไทย", en: "ไทย", cn: "泰语 (Thai)" },

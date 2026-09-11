@@ -3,6 +3,13 @@ import { logger } from "@/shared/lib/infra/logger";
 import { writeAudit } from "../audit";
 import type { UpdateProfileInput } from "../validations/settings";
 
+export async function getProfile(userId: string) {
+  return prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+    select: { name: true, locale: true, email: true, imageUrl: true },
+  });
+}
+
 /**
  * บันทึก audit เฉพาะตอนชื่อเปลี่ยนจริง — locale เป็นแค่ preference ส่วนตัว ไม่ต้อง audit
  * หา tenant จาก membership เหมือน password.service.ts (self-service): ไม่มี membership ก็เขียน
@@ -11,8 +18,15 @@ import type { UpdateProfileInput } from "../validations/settings";
  */
 export async function updateProfile(userId: string, input: UpdateProfileInput): Promise<void> {
   await prisma.$transaction(async (tx) => {
-    const before = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { name: true } });
-    await tx.user.update({ where: { id: userId }, data: { name: input.name, locale: input.locale } });
+    const before = await tx.user.findUniqueOrThrow({ where: { id: userId }, select: { name: true, imageUrl: true } });
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        name: input.name,
+        locale: input.locale,
+        imageUrl: input.imageUrl !== undefined ? input.imageUrl : before.imageUrl,
+      },
+    });
     if (input.name !== before.name) {
       const ut = await tx.userTenant.findFirst({ where: { userId }, select: { tenantId: true } });
       if (ut) {
