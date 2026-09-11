@@ -14,6 +14,9 @@ export default async function PortalLayout({
     resolveTenantSettings().catch(() => null),
   ]);
 
+  const locale = (session?.locale as "th" | "en") || "th";
+  const orgName = tenantSettings ? (locale === "en" ? tenantSettings.nameEn : tenantSettings.nameTh) : t("portal.facultyTitle");
+
   const navLinks = [
     { href: "/", label: t("portal.home") },
     { href: "/news", label: t("portal.news") },
@@ -26,7 +29,7 @@ export default async function PortalLayout({
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* Top Navbar with Responsive Mobile Menu */}
       <PortalHeader
-        facultyTitle={t("portal.facultyTitle")}
+        facultyTitle={orgName}
         facultyTagline={t("portal.facultyTagline")}
         navLinks={navLinks}
         adminConsoleLabel={t("portal.adminConsole")}
@@ -47,14 +50,14 @@ export default async function PortalLayout({
                 <GraduationCap className="h-5 w-5" />
               </div>
               <span className="font-bold text-foreground text-base">
-                {t("portal.facultyTitle")}
+                {orgName}
               </span>
             </div>
             <p className="max-w-md text-xs leading-relaxed">
               {t("portal.facultyTagline")}
             </p>
             <p className="text-xs text-muted-foreground pt-4">
-              © {new Date().getFullYear()} {t("portal.facultyTitle")}. All rights reserved.
+              © {new Date().getFullYear()} {orgName}. All rights reserved.
             </p>
           </div>
 

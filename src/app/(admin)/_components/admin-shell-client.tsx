@@ -15,10 +15,12 @@ import { hasPermission, P } from "@/features/identity";
 
 interface AdminShellClientProps {
   children: React.ReactNode;
+  brandName?: string | null;
+  brandTagline?: string | null;
   brandLogoUrl?: string | null;
 }
 
-export function AdminShellClient({ children, brandLogoUrl }: AdminShellClientProps) {
+export function AdminShellClient({ children, brandName, brandTagline, brandLogoUrl }: AdminShellClientProps) {
   const pathname = usePathname();
   const t = useT();
   const locale = useLocale();
@@ -47,9 +49,12 @@ export function AdminShellClient({ children, brandLogoUrl }: AdminShellClientPro
     ...(hasPermission(ctx, P.settingsManage) ? [{ href: "/settings", label: t("nav.settings"), icon: <Settings className="h-4 w-4" /> }] : []),
   ];
 
+  const displayedBrandName = brandName || t("app.name");
+  const displayedBrandTagline = brandTagline || t("app.tagline");
+
   return (
     <AdminShell
-      brandName={t("app.name")} brandTagline={t("app.tagline")} brandHref="/dashboard"
+      brandName={displayedBrandName} brandTagline={displayedBrandTagline} brandHref="/dashboard"
       brandLogoUrl={brandLogoUrl}
       breadcrumb={breadcrumb} breadcrumbLabel={t("common.breadcrumb")}
       roleLabel={roles[0] ? localizedName(roles[0], locale) : null}

@@ -54,10 +54,18 @@ async function sessionTenantId(): Promise<string | null> {
   }
 }
 
+/** ดึง tenantId สำหรับ public request หรือตอนยังไม่มี session: เลือกรหัส DEMO ก่อน หรือ tenant ที่ active */
+async function fallbackTenantId(): Promise<string | null> {
+  const demo = await prisma.tenant.findUnique({ where: { code: "DEMO" }, select: { id: true, isActive: true } });
+  if (demo && demo.isActive) return demo.id;
+  const first = await prisma.tenant.findFirst({ where: { isActive: true }, orderBy: { createdAt: "asc" }, select: { id: true } });
+  return first?.id ?? null;
+}
+
 /** ใช้โดย root layout ทุก request — tenant จาก session ถ้ามี ไม่งั้น tenant แรก (หน้า login ยังไม่มี session) · ไม่ throw */
 export const resolvePalette = cache(async (): Promise<PaletteId> => {
   try {
-    const tenantId = (await sessionTenantId()) || (await prisma.tenant.findFirst({ orderBy: { createdAt: "asc" }, select: { id: true } }))?.id;
+    const tenantId = (await sessionTenantId()) || (await fallbackTenantId());
     return tenantId ? await getTenantPalette(tenantId) : DEFAULT_PALETTE;
   } catch {
     return DEFAULT_PALETTE;
@@ -67,7 +75,7 @@ export const resolvePalette = cache(async (): Promise<PaletteId> => {
 /** ดึงการตั้งค่าองค์กร (ชื่อ, โลโก้, ธีม) ของ tenant ปัจจุบัน หรือ tenant แรกของระบบ · ไม่ throw */
 export const resolveTenantSettings = cache(async (): Promise<TenantSettings | null> => {
   try {
-    const tenantId = (await sessionTenantId()) || (await prisma.tenant.findFirst({ orderBy: { createdAt: "asc" }, select: { id: true } }))?.id;
+    const tenantId = (await sessionTenantId()) || (await fallbackTenantId());
     return tenantId ? await getTenantSettings(tenantId) : null;
   } catch {
     return null;
