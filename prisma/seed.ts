@@ -17,15 +17,23 @@ async function main() {
   }
   const core = await seedCore(prisma, { tenantCode: "DEMO", nameTh: "องค์กรตัวอย่าง", nameEn: "Sample Organization" });
   const hash = await bcrypt.hash(DEV_PASSWORD, 12);
+  const sriparatHash = await bcrypt.hash("11111111", 12);
   const users = [
-    { email: "admin@app.local", name: "ผู้ดูแลสูงสุด", roles: ["SUPER_ADMIN"] },
-    { email: "staff@app.local", name: "เจ้าหน้าที่", roles: ["STAFF"] },
-    { email: "viewer@app.local", name: "ผู้ดู", roles: ["VIEWER"] },
-    { email: "lockme@app.local", name: "บัญชีทดสอบล็อก", roles: ["VIEWER"] },
-    { email: "forced@app.local", name: "บัญชีบังคับเปลี่ยนรหัส", roles: ["VIEWER"], mustChangePassword: true },
+    { email: "admin@app.local", name: "ผู้ดูแลสูงสุด", roles: ["SUPER_ADMIN"], passwordHash: hash },
+    { email: "sriparat@app.local", name: "Sriparat (Super Admin)", roles: ["SUPER_ADMIN"], passwordHash: sriparatHash },
+    { email: "staff@app.local", name: "เจ้าหน้าที่", roles: ["STAFF"], passwordHash: hash },
+    { email: "viewer@app.local", name: "ผู้ดู", roles: ["VIEWER"], passwordHash: hash },
+    { email: "lockme@app.local", name: "บัญชีทดสอบล็อก", roles: ["VIEWER"], passwordHash: hash },
+    { email: "forced@app.local", name: "บัญชีบังคับเปลี่ยนรหัส", roles: ["VIEWER"], passwordHash: hash, mustChangePassword: true },
   ];
   for (const u of users) {
-    await seedUser(prisma, core.tenantId, { ...u, passwordHash: hash, roleIds: u.roles.map((c) => core.roleIds[c]) });
+    await seedUser(prisma, core.tenantId, {
+      email: u.email,
+      name: u.name,
+      passwordHash: u.passwordHash,
+      roleIds: u.roles.map((c) => core.roleIds[c]),
+      mustChangePassword: u.mustChangePassword,
+    });
   }
 
   // Seed หมวดหมู่ข่าวสาร

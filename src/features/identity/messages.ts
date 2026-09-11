@@ -8,7 +8,7 @@ export const MESSAGES: Dictionary = {
   "auth.brand.eyebrow": { th: "ระบบบริหารจัดการองค์กร", en: "Enterprise Management Framework", cn: "企业管理框架" },
   "auth.brand.title": { th: "จัดการข้อมูลผู้ใช้ บทบาท และสิทธิ์ในที่เดียว", en: "Manage users, roles and permissions in one place", cn: "统一管理用户、角色与权限" },
   "auth.brand.subtitle": { th: "รากฐานที่มั่นคงสำหรับพัฒนาฟีเจอร์ใหม่", en: "A solid foundation for building new features", cn: "扩展新功能的坚实基础" },
-  "auth.email": { th: "อีเมล", en: "Email", cn: "电子邮箱" },
+  "auth.email": { th: "ชื่อผู้ใช้งาน หรือ อีเมล (ID / Email)", en: "Username or Email", cn: "用户名或电子邮箱" },
   "auth.password": { th: "รหัสผ่าน", en: "Password", cn: "密码" },
   "auth.passwordPlaceholder": { th: "อย่างน้อย 8 ตัวอักษร", en: "At least 8 characters", cn: "至少8个字符" },
   "auth.showPassword": { th: "แสดงรหัสผ่าน", en: "Show password", cn: "显示密码" },

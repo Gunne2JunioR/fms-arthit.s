@@ -46,7 +46,7 @@ export function PasswordLoginForm() {
       <div className="fields">
         <div className="field">
           <label htmlFor="email">{t("auth.email")}</label>
-          <span className="wrap"><MailIcon /><input id="email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required /></span>
+          <span className="wrap"><MailIcon /><input id="email" type="text" autoComplete="username" placeholder={t("auth.email")} value={email} onChange={(e) => setEmail(e.target.value)} required /></span>
         </div>
         <div className="field">
           <label htmlFor="password">{t("auth.password")}</label>

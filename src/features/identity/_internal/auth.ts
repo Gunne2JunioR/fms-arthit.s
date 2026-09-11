@@ -52,7 +52,15 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           logger.warn("login throttled", { email });
           return null;
         }
-        const user = await prisma.user.findUnique({ where: { email } });
+        const targetEmail = email.includes("@") ? email : `${email}@app.local`;
+        const user = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email: email },
+              { email: targetEmail },
+            ],
+          },
+        });
         const passwordOk = await verifyPassword(password, passwordHashFor(user, DUMMY_PASSWORD_HASH));
         if (!user || !user.passwordHash || !user.isActive || !passwordOk) {
           await recordLoginFailure(keys);
