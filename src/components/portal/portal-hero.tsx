@@ -29,6 +29,8 @@ interface PortalHeroProps {
   chipAiLabel: string;
   chipBizLabel: string;
   chipCloudLabel: string;
+  videoBgUrl?: string;
+  imageBgUrl?: string;
   metrics: {
     bachelorCount: string;
     bachelorLabel: string;
@@ -54,6 +56,8 @@ export function PortalHero({
   chipAiLabel,
   chipBizLabel,
   chipCloudLabel,
+  videoBgUrl,
+  imageBgUrl = "/images/hero/hero-bg.jpg",
   metrics,
 }: PortalHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -85,20 +89,32 @@ export function PortalHero({
       onMouseLeave={handleMouseLeave}
       className="relative overflow-hidden pt-8 pb-16 lg:pt-14 lg:pb-24 transition-colors"
     >
-      {/* ══════ Interactive Parallax Background Image ══════ */}
+      {/* ══════ Interactive Parallax Background (MPEG-4 Video or Image) ══════ */}
       <div
         className="pointer-events-none absolute -inset-10 transition-transform duration-500 ease-out will-change-transform"
         style={{
           transform: `translate3d(${bgTranslateX}px, ${bgTranslateY}px, 0) scale(1.08)`,
         }}
       >
-        {/* Background Image */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/hero/hero-bg.jpg"
-          alt="139th Anniversary MCU Celebration"
-          className="h-full w-full object-cover object-center opacity-30 dark:opacity-20 filter contrast-105"
-        />
+        {videoBgUrl ? (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="h-full w-full object-cover object-center opacity-35 dark:opacity-25 filter contrast-105"
+          >
+            <source src={videoBgUrl} type="video/mp4" />
+          </video>
+        ) : (
+          /* Background Image */
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={imageBgUrl}
+            alt="139th Anniversary MCU Celebration"
+            className="h-full w-full object-cover object-center opacity-30 dark:opacity-20 filter contrast-105"
+          />
+        )}
 
         {/* Gradient Mask Overlays to integrate seamlessly with Liyon theme */}
         <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/60 to-background" />

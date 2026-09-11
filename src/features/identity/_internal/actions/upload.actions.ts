@@ -88,3 +88,58 @@ export async function uploadAvatarAction(formData: FormData): Promise<ActionResu
     return { url: publicUrl };
   });
 }
+
+const MAX_MEDIA_FILE_SIZE = 50 * 1024 * 1024; // 50 MB (รองรับ MPEG-4 Video)
+const ALLOWED_MEDIA_MIME_TYPES = new Set([
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/svg+xml",
+  "image/gif",
+]);
+
+export async function uploadMediaAction(formData: FormData): Promise<ActionResult<{ url: string; type: "video" | "image" }>> {
+  return runAction(async () => {
+    const { requireSession } = await import("../session");
+    const ctx = await requireSession();
+    const file = formData.get("file");
+
+    if (!file || !(file instanceof File)) {
+      throw new Error("กรุณาเลือกไฟล์สื่อที่ต้องการอัปโหลด");
+    }
+
+    if (file.size > MAX_MEDIA_FILE_SIZE) {
+      throw new Error("ขนาดไฟล์สื่อต้องไม่เกิน 50 MB");
+    }
+
+    if (!ALLOWED_MEDIA_MIME_TYPES.has(file.type)) {
+      throw new Error("รองรับเฉพาะไฟล์วิดีโอ MPEG-4 (.mp4), WebM, หรือไฟล์รูปภาพ");
+    }
+
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    const extMatch = file.name.match(/\.([a-zA-Z0-9]+)$/);
+    const ext = extMatch ? extMatch[1].toLowerCase() : (file.type.startsWith("video/") ? "mp4" : "jpg");
+    const cleanExt = ["mp4", "webm", "mov", "png", "jpg", "jpeg", "webp", "svg", "gif"].includes(ext) ? ext : "mp4";
+    const isVideo = file.type.startsWith("video/") || cleanExt === "mp4" || cleanExt === "webm";
+    const subfolder = isVideo ? "videos" : "images";
+    const filename = `media-${ctx.userId.slice(0, 8)}-${Date.now()}.${cleanExt}`;
+
+    const uploadDir = join(process.cwd(), "public", "uploads", subfolder);
+    await mkdir(uploadDir, { recursive: true });
+
+    const filePath = join(uploadDir, filename);
+    await writeFile(filePath, buffer);
+
+    const publicUrl = `/uploads/${subfolder}/${filename}`;
+    return {
+      url: publicUrl,
+      type: isVideo ? "video" : "image",
+    };
+  });
+}
+
