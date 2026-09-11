@@ -1,3 +1,4 @@
+import type { Prisma } from "@/generated/prisma";
 import { prisma } from "@/shared/lib/infra/prisma";
 import type { CreateBookingInput, UpdateBookingStatusInput } from "./validations";
 
@@ -34,12 +35,64 @@ export interface BookingReservationDto {
   };
 }
 
+type FacilityResourcePayload = Prisma.FacilityResourceGetPayload<Record<string, never>>;
+
+type BookingWithRelations = Prisma.BookingReservationGetPayload<{
+  include: {
+    resource: true;
+    user: {
+      select: {
+        id: true;
+        email: true;
+        name: true;
+      };
+    };
+  };
+}>;
+
+function mapResource(r: FacilityResourcePayload): FacilityResourceDto {
+  return {
+    id: r.id,
+    tenantId: r.tenantId,
+    nameTh: r.nameTh,
+    nameEn: r.nameEn,
+    type: r.type,
+    capacity: r.capacity,
+    location: r.location,
+    requiresApproval: r.requiresApproval,
+    isActive: r.isActive,
+  };
+}
+
+function mapBooking(b: BookingWithRelations): BookingReservationDto {
+  return {
+    id: b.id,
+    tenantId: b.tenantId,
+    resourceId: b.resourceId,
+    userId: b.userId,
+    title: b.title,
+    attendeeCount: b.attendeeCount,
+    startAt: b.startAt,
+    endAt: b.endAt,
+    status: b.status,
+    note: b.note,
+    createdAt: b.createdAt,
+    updatedAt: b.updatedAt,
+    resource: mapResource(b.resource),
+    user: {
+      id: b.user.id,
+      email: b.user.email,
+      name: b.user.name,
+    },
+  };
+}
+
 export async function listResources(tenantId: string): Promise<FacilityResourceDto[]> {
   const res = await prisma.facilityResource.findMany({
     where: { tenantId, isActive: true },
     orderBy: { nameTh: "asc" },
   });
-  return res as FacilityResourceDto[];
+  return res.map(mapResource);
 }
 
 export async function listBookings(tenantId: string, resourceId?: string): Promise<BookingReservationDto[]> {
@@ -60,7 +113,7 @@ export async function listBookings(tenantId: string, resourceId?: string): Promi
     },
     orderBy: { startAt: "desc" },
   });
-  return list as BookingReservationDto[];
+  return list.map(mapBooking);
 }
 
 export async function getBookingById(tenantId: string, id: string): Promise<BookingReservationDto | null> {
@@ -77,7 +130,7 @@ export async function getBookingById(tenantId: string, id: string): Promise<Book
       },
     },
   });
-  return b as BookingReservationDto | null;
+  return b ? mapBooking(b) : null;
 }
 
 export async function createBooking(
@@ -133,7 +186,7 @@ export async function createBooking(
     },
   });
 
-  return created as BookingReservationDto;
+  return mapBooking(created);
 }
 
 export async function updateBookingStatus(
@@ -157,5 +210,5 @@ export async function updateBookingStatus(
       },
     },
   });
-  return updated as BookingReservationDto;
+  return mapBooking(updated);
 }
