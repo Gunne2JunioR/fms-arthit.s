@@ -30,6 +30,9 @@ export default async function PortalHomePage() {
         chipAiLabel={t("portal.heroChipAi")}
         chipBizLabel={t("portal.heroChipBiz")}
         chipCloudLabel={t("portal.heroChipCloud")}
+        heroCallLabel={t("portal.heroCallLabel")}
+        heroPhone={t("portal.heroPhone")}
+        heroAddress={t("portal.heroAddress")}
         metrics={{
           bachelorCount: "4",
           bachelorLabel: t("portal.metric.bachelor"),

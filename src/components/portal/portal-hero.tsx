@@ -8,11 +8,14 @@ import {
   ArrowRight,
   TrendingUp,
   Cpu,
-  GraduationCap,
-  ShieldCheck,
   Zap,
   Globe2,
-  Users2,
+  Phone,
+  MapPin,
+  Facebook,
+  Instagram,
+  Twitter,
+  Youtube,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -29,6 +32,9 @@ interface PortalHeroProps {
   chipAiLabel: string;
   chipBizLabel: string;
   chipCloudLabel: string;
+  heroCallLabel?: string;
+  heroPhone?: string;
+  heroAddress?: string;
   videoBgUrl?: string;
   imageBgUrl?: string;
   metrics: {
@@ -56,8 +62,11 @@ export function PortalHero({
   chipAiLabel,
   chipBizLabel,
   chipCloudLabel,
+  heroCallLabel = "สอบถามข้อมูลเพิ่มเติม",
+  heroPhone = "+66 2 878 787 1234",
+  heroAddress = "อาคารคณะการจัดการและเทคโนโลยีสารสนเทศ วิทยาเขตหลัก",
   videoBgUrl,
-  imageBgUrl = "/images/hero/hero-bg.jpg",
+  imageBgUrl = "/images/hero/hero-people.png",
   metrics,
 }: PortalHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -77,10 +86,12 @@ export function PortalHero({
   }, []);
 
   // Calculate subtle translation pixels for background parallax
-  const bgTranslateX = mouseOffset.x * -25;
-  const bgTranslateY = mouseOffset.y * -20;
-  const lightTranslateX = mouseOffset.x * 30;
-  const lightTranslateY = mouseOffset.y * 25;
+  const bgTranslateX = mouseOffset.x * -20;
+  const bgTranslateY = mouseOffset.y * -15;
+  const lightTranslateX = mouseOffset.x * 25;
+  const lightTranslateY = mouseOffset.y * 20;
+  const pillTranslateX = mouseOffset.x * 14;
+  const pillTranslateY = mouseOffset.y * 12;
 
   return (
     <section
@@ -157,11 +168,164 @@ export function PortalHero({
       />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10 max-w-7xl">
-        {/* Top 2-Column Split (Text & 3D Stage) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          {/* ══════ Left Column: Narrative & CTA ══════ */}
-          <div className="lg:col-span-7 space-y-6 text-left">
-            {/* Pill Badge */}
+        {/* 2-Column Split: Left Diagonal Slits Showcase & Right Narrative Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          {/* ══════ Left Column: Social Rail + Signature Diagonal Pill Slits ══════ */}
+          <div className="lg:col-span-6 flex items-center gap-4 sm:gap-6 order-2 lg:order-1">
+            {/* Left Social Icons Rail (from Reference Design) */}
+            <div className="hidden sm:flex flex-col items-center gap-3 py-4 px-2 rounded-full bg-[var(--glass)] border border-[var(--glass-border)] backdrop-blur-md shadow-xs shrink-0 z-20">
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Facebook"
+                className="h-8 w-8 rounded-full flex items-center justify-center text-[var(--text-2)] hover:text-[var(--brand)] hover:bg-[var(--glass-hover)] transition-all"
+              >
+                <Facebook className="h-4 w-4" />
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Instagram"
+                className="h-8 w-8 rounded-full flex items-center justify-center text-[var(--text-2)] hover:text-[var(--brand)] hover:bg-[var(--glass-hover)] transition-all"
+              >
+                <Instagram className="h-4 w-4" />
+              </a>
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Twitter"
+                className="h-8 w-8 rounded-full flex items-center justify-center text-[var(--text-2)] hover:text-[var(--brand)] hover:bg-[var(--glass-hover)] transition-all"
+              >
+                <Twitter className="h-4 w-4" />
+              </a>
+              <a
+                href="https://youtube.com"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="YouTube"
+                className="h-8 w-8 rounded-full flex items-center justify-center text-[var(--text-2)] hover:text-rose-500 hover:bg-[var(--glass-hover)] transition-all"
+              >
+                <Youtube className="h-4 w-4" />
+              </a>
+            </div>
+
+            {/* Diagonal Staggered Rounded Pill-Cut Visual Showcase */}
+            <div
+              className="relative w-full aspect-[4/3.8] max-w-[480px] mx-auto flex items-center justify-center transition-transform duration-500 ease-out will-change-transform"
+              style={{
+                transform: `translate3d(${pillTranslateX}px, ${pillTranslateY}px, 0)`,
+              }}
+            >
+              {/* Outer Rotated Slit Frame (-42deg diagonal) */}
+              <div className="relative w-[340px] sm:w-[410px] h-[340px] sm:h-[410px] flex items-center justify-center -rotate-[42deg]">
+                {/* Diagonal Sliced Slits Grid (4 Staggered Rounded Pills) */}
+                <div className="flex items-center gap-2.5 sm:gap-3.5">
+                  {/* Slit 1: Leftmost pill (shorter, offset lower) */}
+                  <div className="w-13 sm:w-17 h-44 sm:h-54 rounded-full overflow-hidden relative shadow-xl border-2 border-white/50 dark:border-white/10 bg-slate-900 translate-y-8 group">
+                    <div className="absolute inset-[-140%] flex items-center justify-center rotate-[42deg] scale-125 pointer-events-none">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={imageBgUrl}
+                        alt="Academic Leadership & Excellence"
+                        className="w-full h-full object-cover object-center filter contrast-105"
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--brand)]/20 via-transparent to-white/10 pointer-events-none" />
+                  </div>
+
+                  {/* Slit 2: Center-left pill (Tallest primary slit) */}
+                  <div className="w-15 sm:w-19 h-72 sm:h-88 rounded-full overflow-hidden relative shadow-2xl border-2 border-white/70 dark:border-white/15 bg-slate-900 -translate-y-4 group">
+                    <div className="absolute inset-[-140%] flex items-center justify-center rotate-[42deg] scale-125 pointer-events-none">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={imageBgUrl}
+                        alt="Academic Leadership & Excellence"
+                        className="w-full h-full object-cover object-center filter contrast-105"
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-[var(--brand-deep)]/25 pointer-events-none" />
+                  </div>
+
+                  {/* Slit 3: Center-right pill (Tall secondary slit) */}
+                  <div className="w-15 sm:w-19 h-68 sm:h-80 rounded-full overflow-hidden relative shadow-2xl border-2 border-white/70 dark:border-white/15 bg-slate-900 translate-y-6 group">
+                    <div className="absolute inset-[-140%] flex items-center justify-center rotate-[42deg] scale-125 pointer-events-none">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={imageBgUrl}
+                        alt="Academic Leadership & Excellence"
+                        className="w-full h-full object-cover object-center filter contrast-105"
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--brand)]/25 via-transparent to-white/15 pointer-events-none" />
+                  </div>
+
+                  {/* Slit 4: Rightmost pill (Medium slit) */}
+                  <div className="w-13 sm:w-17 h-48 sm:h-58 rounded-full overflow-hidden relative shadow-xl border-2 border-white/50 dark:border-white/10 bg-slate-900 -translate-y-8 group">
+                    <div className="absolute inset-[-140%] flex items-center justify-center rotate-[42deg] scale-125 pointer-events-none">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={imageBgUrl}
+                        alt="Academic Leadership & Excellence"
+                        className="w-full h-full object-cover object-center filter contrast-105"
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-transparent to-[var(--brand)]/20 pointer-events-none" />
+                  </div>
+                </div>
+              </div>
+
+              {/* ════ Floating Satellites around the Pill Showcase ════ */}
+              {/* Satellite 1: Top Floating Graduation / Academic Badge */}
+              <div
+                className="absolute top-1 -right-2 sm:right-2 px-3.5 py-2 rounded-2xl bg-[var(--glass-strong)] border border-[var(--glass-border)] backdrop-blur-xl shadow-xl flex items-center gap-2.5 transition-transform duration-500 ease-out"
+                style={{
+                  boxShadow: "0 16px 36px -12px rgba(0,0,0,0.18)",
+                  transform: `translate3d(${mouseOffset.x * 16}px, ${mouseOffset.y * 14}px, 0)`,
+                }}
+              >
+                <div className="h-8 w-8 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <TrendingUp className="h-4 w-4" />
+                </div>
+                <div className="text-left">
+                  <p className="text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider">
+                    {gradSuccessLabel}
+                  </p>
+                  <p className="text-xs sm:text-sm font-extrabold text-[var(--text)]">
+                    {metrics.employmentRate}
+                  </p>
+                </div>
+              </div>
+
+              {/* Satellite 2: Bottom Floating 24/7 Status Badge */}
+              <div
+                className="absolute bottom-1 -left-2 sm:left-2 px-3.5 py-2.5 rounded-2xl bg-[var(--glass-strong)] border border-[var(--glass-border)] backdrop-blur-xl shadow-xl flex items-center gap-2.5 transition-transform duration-500 ease-out"
+                style={{
+                  boxShadow: "0 16px 36px -12px rgba(0,0,0,0.18)",
+                  transform: `translate3d(${-mouseOffset.x * 14}px, ${-mouseOffset.y * 12}px, 0)`,
+                }}
+              >
+                <div className="h-8 w-8 rounded-xl bg-[var(--brand)]/15 text-[var(--brand)] flex items-center justify-center">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+                <div className="text-left">
+                  <p className="text-[11px] font-bold text-[var(--text)] leading-tight">
+                    {liveStatusLabel}
+                  </p>
+                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 pt-0.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block" />
+                    Online Open
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ══════ Right Column: High-Impact Typography & Action Content ══════ */}
+          <div className="lg:col-span-6 space-y-6 text-left order-1 lg:order-2">
+            {/* Top Pill Badge */}
             <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[var(--glass-strong)] border border-[var(--glass-border)] shadow-xs backdrop-blur-md">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -176,7 +340,7 @@ export function PortalHero({
               </span>
             </div>
 
-            {/* Giant Modern Headline */}
+            {/* Giant Bold Headline (Inspired by Business Agency in Reference UI) */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[var(--text)] leading-[1.12]">
               {heroTitle1}{" "}
               <span className="bg-gradient-to-r from-[var(--brand)] via-[var(--brand-light)] to-[var(--brand2,var(--brand-light))] bg-clip-text text-transparent">
@@ -184,13 +348,13 @@ export function PortalHero({
               </span>
             </h1>
 
-            {/* Subtitle */}
+            {/* Subtitle / Description */}
             <p className="text-base sm:text-lg text-[var(--text-2)] max-w-xl leading-relaxed">
               {heroDesc}
             </p>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-4 pt-1">
               <Button
                 asChild
                 size="lg"
@@ -216,7 +380,7 @@ export function PortalHero({
             </div>
 
             {/* Tech & Specialization Tag Pills */}
-            <div className="pt-3 flex flex-wrap items-center gap-2 text-xs text-[var(--text-2)]">
+            <div className="pt-2 flex flex-wrap items-center gap-2 text-xs text-[var(--text-2)]">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--glass)] border border-[var(--glass-border)] backdrop-blur-xs">
                 <Cpu className="h-3.5 w-3.5 text-[var(--brand)]" />
                 <span>{chipAiLabel}</span>
@@ -230,121 +394,38 @@ export function PortalHero({
                 <span>{chipCloudLabel}</span>
               </span>
             </div>
-          </div>
 
-          {/* ══════ Right Column: Resadex-Style 3D Stage with Mouse Tilt ══════ */}
-          <div className="lg:col-span-5 relative flex items-center justify-center pt-6 lg:pt-0">
-            <div
-              className="relative w-full max-w-[440px] aspect-[4/3.8] [perspective:1000px]"
-            >
-              {/* Main 3D Tilted Glass Card */}
-              <div
-                className="w-full h-full rounded-3xl p-6 relative overflow-hidden transition-all duration-300 ease-out"
-                style={{
-                  background: "var(--glass-strong)",
-                  border: "1px solid var(--glass-border)",
-                  backdropFilter: "blur(24px) saturate(160%)",
-                  boxShadow: "0 28px 60px -20px var(--shadow)",
-                  transform: `rotateY(${-8 + mouseOffset.x * 12}deg) rotateX(${6 - mouseOffset.y * 10}deg) translate3d(${mouseOffset.x * 10}px, ${mouseOffset.y * 8}px, 0)`,
-                }}
-              >
-                {/* Internal Card Decor - Top Bar */}
-                <div className="flex items-center justify-between pb-4 border-b border-[var(--glass-border)]">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-rose-400/80 inline-block" />
-                    <span className="w-3 h-3 rounded-full bg-amber-400/80 inline-block" />
-                    <span className="w-3 h-3 rounded-full bg-emerald-400/80 inline-block" />
-                  </div>
-                  <div className="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[var(--brand)]/10 text-[var(--brand)] border border-[var(--brand)]/20">
-                    Faculty OS
-                  </div>
+            {/* ════ Bottom Direct Contact Capsule (from Reference UI) ════ */}
+            <div className="pt-4 border-t border-[var(--glass-border)] grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Phone Info */}
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-[var(--brand)]/15 text-[var(--brand)] flex items-center justify-center shrink-0">
+                  <Phone className="h-4 w-4" />
                 </div>
-
-                {/* Central Futuristic Graphic */}
-                <div className="py-6 space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-2xl bg-[var(--brand)] text-[var(--on-brand)] flex items-center justify-center shadow-md">
-                      <GraduationCap className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-[var(--text)]">Academic Intelligence</h4>
-                      <p className="text-xs text-[var(--text-muted)]">Next-gen Management & IT</p>
-                    </div>
-                  </div>
-
-                  {/* Progress / Stat Wave Simulation */}
-                  <div className="space-y-2 pt-2">
-                    <div className="flex justify-between text-xs font-semibold text-[var(--text-2)]">
-                      <span>Curriculum Evolution</span>
-                      <span className="text-[var(--brand)]">98.4%</span>
-                    </div>
-                    <div className="h-2 w-full rounded-full bg-[var(--glass-border)] overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-[var(--brand)] to-[var(--brand-light)] w-[98.4%]"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Mini metrics inside window */}
-                  <div className="grid grid-cols-2 gap-3 pt-3">
-                    <div className="p-3 rounded-xl bg-[var(--glass)] border border-[var(--glass-border)] space-y-1">
-                      <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
-                        <Users2 className="h-3.5 w-3.5 text-[var(--brand)]" />
-                        <span>Active Cohort</span>
-                      </div>
-                      <div className="text-base font-bold text-[var(--text)]">1,200+</div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-[var(--glass)] border border-[var(--glass-border)] space-y-1">
-                      <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
-                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                        <span>Accreditation</span>
-                      </div>
-                      <div className="text-base font-bold text-[var(--text)]">AUN-QA</div>
-                    </div>
-                  </div>
+                <div>
+                  <p className="text-[11px] font-medium text-[var(--text-muted)]">
+                    {heroCallLabel}
+                  </p>
+                  <a
+                    href={`tel:${heroPhone.replace(/\s+/g, "")}`}
+                    className="text-sm font-bold text-[var(--brand-ink)] hover:underline"
+                  >
+                    {heroPhone}
+                  </a>
                 </div>
               </div>
 
-              {/* ════ Floating Satellites (Resadex Animation Style with Parallax) ════ */}
-              {/* Satellite 1: Top Right Floating Status Pill */}
-              <div
-                className="absolute -top-4 -right-4 sm:-right-6 px-4 py-2.5 rounded-2xl bg-[var(--glass-strong)] border border-[var(--glass-border)] backdrop-blur-xl shadow-xl flex items-center gap-3 transition-transform duration-500 ease-out"
-                style={{
-                  boxShadow: "0 16px 36px -12px rgba(0,0,0,0.18)",
-                  transform: `translate3d(${mouseOffset.x * 20}px, ${mouseOffset.y * 18}px, 0)`,
-                }}
-              >
-                <div className="h-8 w-8 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                  <TrendingUp className="h-4 w-4" />
+              {/* Address / Location Info */}
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <MapPin className="h-4 w-4" />
                 </div>
-                <div className="text-left">
-                  <p className="text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider">
-                    {gradSuccessLabel}
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium text-[var(--text-muted)]">
+                    Location
                   </p>
-                  <p className="text-sm font-extrabold text-[var(--text)]">
-                    {metrics.employmentRate}
-                  </p>
-                </div>
-              </div>
-
-              {/* Satellite 2: Bottom Left Floating Admission Badge */}
-              <div
-                className="absolute -bottom-5 -left-4 sm:-left-6 px-4 py-3 rounded-2xl bg-[var(--glass-strong)] border border-[var(--glass-border)] backdrop-blur-xl shadow-xl flex items-center gap-3 transition-transform duration-500 ease-out"
-                style={{
-                  boxShadow: "0 16px 36px -12px rgba(0,0,0,0.18)",
-                  transform: `translate3d(${-mouseOffset.x * 18}px, ${-mouseOffset.y * 16}px, 0)`,
-                }}
-              >
-                <div className="h-9 w-9 rounded-xl bg-[var(--brand)]/15 text-[var(--brand)] flex items-center justify-center">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <div className="text-left">
-                  <p className="text-[11px] font-bold text-[var(--text)] leading-tight">
-                    {liveStatusLabel}
-                  </p>
-                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 pt-0.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block" />
-                    Online Open
+                  <p className="text-xs font-semibold text-[var(--text)] truncate">
+                    {heroAddress}
                   </p>
                 </div>
               </div>
