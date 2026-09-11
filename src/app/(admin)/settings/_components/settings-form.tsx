@@ -1,31 +1,52 @@
 "use client";
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Loader2, Mail, Send, CheckCircle2, AlertCircle, Info } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { LiyonCard, LiyonField, PalettePicker } from "@/shared/components/liyon";
+import { LiyonCard, LiyonField, LiyonSelect, LiyonSwitchRow, PalettePicker } from "@/shared/components/liyon";
 import { useT } from "@/shared/lib/i18n/client";
 import type { PaletteId } from "@/shared/lib/palette";
-import type { TenantSettings } from "@/features/identity";
-import { updateSettingsAction, uploadLogoAction } from "@/features/identity/actions";
+import type { TenantSettings, SmtpConfig } from "@/features/identity";
+import { updateSettingsAction, uploadLogoAction, testSmtpAction } from "@/features/identity/actions";
+
+const defaultSmtp: SmtpConfig = {
+  enabled: false,
+  provider: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  user: "",
+  pass: "",
+  fromName: "",
+  fromEmail: "",
+};
 
 export function SettingsForm({ initial }: { initial: TenantSettings }) {
   const t = useT();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [form, setForm] = useState({ nameTh: initial.nameTh, nameEn: initial.nameEn, logoUrl: initial.logoUrl ?? "", palette: initial.palette as PaletteId });
+  const [form, setForm] = useState({
+    nameTh: initial.nameTh,
+    nameEn: initial.nameEn,
+    logoUrl: initial.logoUrl ?? "",
+    palette: initial.palette as PaletteId,
+    smtp: (initial.smtp ? { ...defaultSmtp, ...initial.smtp } : defaultSmtp) as SmtpConfig,
+  });
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [pending, start] = useTransition();
   const [uploading, setUploading] = useState(false);
+
+  // Test email state
+  const [testRecipient, setTestRecipient] = useState("");
+  const [testingSmtp, setTestingSmtp] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Reset input value so same file can be re-selected if needed
     e.target.value = "";
-
     const formData = new FormData();
     formData.append("file", file);
 
@@ -45,10 +66,63 @@ export function SettingsForm({ initial }: { initial: TenantSettings }) {
     }
   }
 
+  function updateSmtp<K extends keyof SmtpConfig>(key: K, value: SmtpConfig[K]) {
+    setForm((prev) => {
+      const updatedSmtp = { ...prev.smtp, [key]: value };
+      if (key === "provider") {
+        if (value === "gmail") {
+          updatedSmtp.host = "smtp.gmail.com";
+          updatedSmtp.port = 465;
+          updatedSmtp.secure = true;
+        } else {
+          if (updatedSmtp.host === "smtp.gmail.com") {
+            updatedSmtp.host = "";
+            updatedSmtp.port = 587;
+            updatedSmtp.secure = false;
+          }
+        }
+      }
+      return { ...prev, smtp: updatedSmtp };
+    });
+  }
+
+  async function handleTestSmtp() {
+    if (!testRecipient.trim()) {
+      toast.error(t("settings.testRecipient"));
+      return;
+    }
+    setTestingSmtp(true);
+    setTestResult(null);
+    try {
+      const res = await testSmtpAction({
+        smtp: form.smtp,
+        testRecipient: testRecipient.trim(),
+      });
+      if (res.ok) {
+        setTestResult({ ok: true, message: t("settings.testSuccess") });
+        toast.success(t("settings.testSuccess"));
+      } else {
+        const msg = res.error.message || (res.error.fieldErrors ? JSON.stringify(res.error.fieldErrors) : t("settings.testFailed"));
+        setTestResult({ ok: false, message: msg });
+        toast.error(`${t("settings.testFailed")}${msg}`);
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setTestResult({ ok: false, message: msg });
+      toast.error(`${t("settings.testFailed")}${msg}`);
+    } finally {
+      setTestingSmtp(false);
+    }
+  }
+
   function save() {
     start(async () => {
       const r = await updateSettingsAction(form);
-      if (!r.ok) { setErrors(r.error.fieldErrors ?? {}); if (!r.error.fieldErrors) toast.error(t(`error.${r.error.code}`)); return; }
+      if (!r.ok) {
+        setErrors(r.error.fieldErrors ?? {});
+        if (!r.error.fieldErrors) toast.error(t(`error.${r.error.code}`));
+        return;
+      }
       setErrors({});
       toast.success(t("settings.saveOk"));
       router.refresh();
@@ -139,6 +213,210 @@ export function SettingsForm({ initial }: { initial: TenantSettings }) {
             </LiyonField>
           </div>
         </LiyonCard>
+
+        {/* ── SMTP / Gmail Settings Card ── */}
+        <LiyonCard>
+          <div className="flex items-center gap-2 mb-1">
+            <Mail className="h-5 w-5 text-primary" />
+            <h2>{t("settings.smtpTitle")}</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">{t("settings.smtpDesc")}</p>
+
+          <div className="space-y-5">
+            <LiyonSwitchRow
+              id="s-smtp-enabled"
+              checked={form.smtp.enabled}
+              onCheckedChange={(checked) => updateSmtp("enabled", checked)}
+              label={t("settings.smtpEnable")}
+              description={t("settings.smtpDesc")}
+            />
+
+            {form.smtp.enabled && (
+              <div className="space-y-5 pt-2 border-t">
+                {/* Provider Selection */}
+                <LiyonField label={t("settings.smtpProvider")} htmlFor="s-smtp-provider">
+                  <LiyonSelect
+                    id="s-smtp-provider"
+                    value={form.smtp.provider}
+                    onChange={(e) => updateSmtp("provider", e.target.value as "gmail" | "custom")}
+                  >
+                    <option value="gmail">{t("settings.smtpProviderGmail")}</option>
+                    <option value="custom">{t("settings.smtpProviderCustom")}</option>
+                  </LiyonSelect>
+                </LiyonField>
+
+                {/* Gmail Guidance Banner */}
+                {form.smtp.provider === "gmail" && (
+                  <div className="rounded-lg border border-sky-200 bg-sky-50/70 p-4 dark:border-sky-900/50 dark:bg-sky-950/20 text-sm space-y-2">
+                    <div className="flex items-center gap-2 font-medium text-sky-800 dark:text-sky-300">
+                      <Info className="h-4 w-4 shrink-0" />
+                      <span>{t("settings.gmailHelpTitle")}</span>
+                    </div>
+                    <ul className="list-none space-y-1 text-xs text-sky-700 dark:text-sky-400 pl-6">
+                      <li>{t("settings.gmailHelp1")}</li>
+                      <li>{t("settings.gmailHelp2")}</li>
+                      <li>{t("settings.gmailHelp3")}</li>
+                    </ul>
+                  </div>
+                )}
+
+                {/* Credentials */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <LiyonField
+                    label={form.smtp.provider === "gmail" ? t("settings.gmailAccount") : t("settings.smtpUser")}
+                    htmlFor="s-smtp-user"
+                    hint={form.smtp.provider === "gmail" ? "example@gmail.com" : undefined}
+                    error={errors["smtp.user"]?.[0]}
+                  >
+                    <input
+                      id="s-smtp-user"
+                      type="text"
+                      placeholder={form.smtp.provider === "gmail" ? "user@gmail.com" : "username or user@domain.com"}
+                      value={form.smtp.user}
+                      onChange={(e) => updateSmtp("user", e.target.value)}
+                    />
+                  </LiyonField>
+
+                  <LiyonField
+                    label={form.smtp.provider === "gmail" ? t("settings.gmailAppPassword") : t("settings.smtpPass")}
+                    htmlFor="s-smtp-pass"
+                    hint={form.smtp.provider === "gmail" ? "16 ตัวอักษร เช่น abcd efgh ijkl mnop" : undefined}
+                    error={errors["smtp.pass"]?.[0]}
+                  >
+                    <input
+                      id="s-smtp-pass"
+                      type="password"
+                      autoComplete="new-password"
+                      placeholder="••••••••••••••••"
+                      value={form.smtp.pass}
+                      onChange={(e) => updateSmtp("pass", e.target.value)}
+                    />
+                  </LiyonField>
+                </div>
+
+                {/* Sender Name and Sender Email */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <LiyonField label={t("settings.fromName")} htmlFor="s-smtp-from-name" hint={t("common.optional")}>
+                    <input
+                      id="s-smtp-from-name"
+                      type="text"
+                      placeholder={form.nameTh || form.nameEn || "My Organization"}
+                      value={form.smtp.fromName}
+                      onChange={(e) => updateSmtp("fromName", e.target.value)}
+                    />
+                  </LiyonField>
+
+                  <LiyonField
+                    label={t("settings.fromEmail")}
+                    htmlFor="s-smtp-from-email"
+                    hint={form.smtp.provider === "gmail" ? "เว้นว่างเพื่อใช้อีเมลบัญชี Gmail เดียวกัน" : t("common.optional")}
+                  >
+                    <input
+                      id="s-smtp-from-email"
+                      type="email"
+                      placeholder={form.smtp.user || "noreply@domain.com"}
+                      value={form.smtp.fromEmail}
+                      onChange={(e) => updateSmtp("fromEmail", e.target.value)}
+                    />
+                  </LiyonField>
+                </div>
+
+                {/* Custom Server Host & Port */}
+                {form.smtp.provider === "custom" && (
+                  <div className="space-y-4 pt-2 border-t">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="md:col-span-2">
+                        <LiyonField label={t("settings.smtpHost")} htmlFor="s-smtp-host">
+                          <input
+                            id="s-smtp-host"
+                            type="text"
+                            placeholder="mail.example.com"
+                            value={form.smtp.host}
+                            onChange={(e) => updateSmtp("host", e.target.value)}
+                          />
+                        </LiyonField>
+                      </div>
+                      <div>
+                        <LiyonField label={t("settings.smtpPort")} htmlFor="s-smtp-port">
+                          <input
+                            id="s-smtp-port"
+                            type="number"
+                            placeholder="587 / 465"
+                            value={form.smtp.port}
+                            onChange={(e) => updateSmtp("port", Number(e.target.value) || 587)}
+                          />
+                        </LiyonField>
+                      </div>
+                    </div>
+                    <LiyonSwitchRow
+                      id="s-smtp-secure"
+                      checked={form.smtp.secure}
+                      onCheckedChange={(checked) => updateSmtp("secure", checked)}
+                      label={t("settings.smtpSecure")}
+                      description="เปิดใช้งานสำหรับ Port 465 (SSL) หรือปิดสำหรับ Port 587 (STARTTLS)"
+                    />
+                  </div>
+                )}
+
+                {/* Test Connection Section */}
+                <div className="mt-4 rounded-lg border bg-muted/20 p-4 space-y-3">
+                  <div className="flex items-center gap-2 font-medium text-sm">
+                    <Send className="h-4 w-4 text-primary" />
+                    <span>{t("settings.testEmailTitle")}</span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <input
+                      type="email"
+                      placeholder="recipient@example.com"
+                      value={testRecipient}
+                      onChange={(e) => setTestRecipient(e.target.value)}
+                      className="flex-1 min-w-[220px]"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={testingSmtp || !form.smtp.user || !form.smtp.pass}
+                      onClick={handleTestSmtp}
+                      className="gap-1.5"
+                    >
+                      {testingSmtp ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>{t("settings.testing")}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4" />
+                          <span>{t("settings.btnTest")}</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {testResult && (
+                    <div
+                      className={`flex items-start gap-2 p-3 rounded-md text-xs ${
+                        testResult.ok
+                          ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                          : "bg-destructive/10 text-destructive border border-destructive/20"
+                      }`}
+                    >
+                      {testResult.ok ? (
+                        <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                      )}
+                      <div className="break-all">{testResult.message}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </LiyonCard>
+
         <LiyonCard>
           <h2>{t("settings.brandTitle")}</h2>
           <p>{t("settings.brandDesc")}</p>

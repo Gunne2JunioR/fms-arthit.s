@@ -49,21 +49,29 @@ export function UsersClient({ canManage, selfId }: { canManage: boolean; selfId:
   // คนเดียว / แตะ super admin ไม่ได้) และต้องขึ้นข้อความที่ตรงกับสาเหตุจริง ไม่ใช่ข้อความ fallback เดียวเสมอ
   const fail = (error: { code: string; message: string }, fallback: string) => {
     toast.error(
-      error.code === "conflict"
-        ? t("users.emailTaken")
-        : error.message === "last_super_admin"
-          ? t("users.lastSuperAdmin")
-          : error.message === "super_admin_protected"
-            ? t("users.superAdminProtected")
-            : error.code === "forbidden"
-              ? t("users.cannotEditSelf")
-              : fallback,
+      error.message === "google_email_taken"
+        ? t("users.googleEmailTaken")
+        : error.code === "conflict"
+          ? t("users.emailTaken")
+          : error.message === "last_super_admin"
+            ? t("users.lastSuperAdmin")
+            : error.message === "super_admin_protected"
+              ? t("users.superAdminProtected")
+              : error.code === "forbidden"
+                ? t("users.cannotEditSelf")
+                : fallback,
     );
   };
 
   function submitCreate() {
     start(async () => {
-      const r = await createUserAction({ email: form.email, name: form.name, roles: form.roleIds.map((id) => ({ roleId: id, scopeType: "ALL", scopeId: null })) });
+      const r = await createUserAction({
+        email: form.email,
+        name: form.name,
+        googleEmail: form.googleEmail ? form.googleEmail : null,
+        allowGoogleLogin: form.allowGoogleLogin,
+        roles: form.roleIds.map((id) => ({ roleId: id, scopeType: "ALL", scopeId: null })),
+      });
       if (!r.ok) return fail(r.error, r.error.fieldErrors ? Object.values(r.error.fieldErrors).flat()[0] : t("users.createFail"));
       toast.success(t("users.createOk"));
       setDialog({ kind: "link", link: r.data.link, hours: r.data.hours, title: t("users.linkTitle"), desc: t("users.linkDesc", { hours: r.data.hours }), mailDelivered: r.data.mailDelivered });
@@ -72,7 +80,14 @@ export function UsersClient({ canManage, selfId }: { canManage: boolean; selfId:
   }
   function submitEdit(user: UserListItem) {
     start(async () => {
-      const r = await updateUserAction({ userId: user.id, name: form.name, roles: form.roleIds.map((id) => ({ roleId: id, scopeType: "ALL", scopeId: null })), mustChangePassword: form.mustChangePassword });
+      const r = await updateUserAction({
+        userId: user.id,
+        name: form.name,
+        googleEmail: form.googleEmail ? form.googleEmail : null,
+        allowGoogleLogin: form.allowGoogleLogin,
+        roles: form.roleIds.map((id) => ({ roleId: id, scopeType: "ALL", scopeId: null })),
+        mustChangePassword: form.mustChangePassword,
+      });
       if (!r.ok) return fail(r.error, t("users.editFail"));
       toast.success(t("users.editOk")); setDialog(null); void load();
     });
@@ -127,7 +142,17 @@ export function UsersClient({ canManage, selfId }: { canManage: boolean; selfId:
         roleId={roleId} roles={roles} onRoleChange={(r) => { setRoleId(r); setPage(1); }}
         onPrev={() => setPage((p) => Math.max(1, p - 1))} onNext={() => setPage((p) => p + 1)}
         canManage={canManage && dialog === null} selfId={selfId} selected={selected} onSelectedChange={setSelected}
-        onEdit={(u) => { setForm({ name: u.name, email: u.email, roleIds: u.roles.map((r) => r.id), mustChangePassword: u.mustChangePassword }); setDialog({ kind: "edit", user: u }); }}
+        onEdit={(u) => {
+          setForm({
+            name: u.name,
+            email: u.email,
+            googleEmail: u.googleEmail ?? "",
+            allowGoogleLogin: u.allowGoogleLogin,
+            roleIds: u.roles.map((r) => r.id),
+            mustChangePassword: u.mustChangePassword,
+          });
+          setDialog({ kind: "edit", user: u });
+        }}
         onIssueLink={issueLink} onChangeEmail={(u) => setDialog({ kind: "email", user: u })}
         onSuspend={(list) => setDialog({ kind: "suspend", users: list })} onActivate={(u) => toggleActive([u], true)}
         onRetry={load}

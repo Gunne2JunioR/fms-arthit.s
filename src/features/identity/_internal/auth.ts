@@ -21,6 +21,37 @@ export function oauthProviderIds(): OAuthProviderId[] {
   return ids;
 }
 
+export type GoogleAccountInfo = {
+  id: string;
+  name: string | null;
+  email: string;
+  imageUrl: string | null;
+};
+
+export async function getAvailableGoogleAccounts(): Promise<GoogleAccountInfo[]> {
+  const users = await prisma.user.findMany({
+    where: {
+      OR: [
+        { email: { endsWith: "@gmail.com" } },
+        { googleEmail: { not: null } },
+        { provider: "google" },
+      ],
+      isActive: true,
+      allowGoogleLogin: true,
+    },
+    select: { id: true, name: true, email: true, googleEmail: true, imageUrl: true },
+    orderBy: { createdAt: "asc" },
+    take: 5,
+  });
+
+  return users.map((u) => ({
+    id: u.id,
+    name: u.name,
+    email: u.googleEmail || u.email,
+    imageUrl: u.imageUrl,
+  }));
+}
+
 function clientIp(req: Request | undefined): string | null {
   const xff = req?.headers.get("x-forwarded-for");
   return xff ? xff.split(",")[0].trim() : null;
@@ -37,7 +68,23 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   pages: { signIn: "/login" },
   session: { strategy: "jwt", maxAge: 2 * 24 * 60 * 60, updateAge: 24 * 60 * 60 },
   providers: [
-    ...(googleOAuthConfigured() ? [Google({ clientId: env().GOOGLE_CLIENT_ID, clientSecret: env().GOOGLE_CLIENT_SECRET })] : []),
+    ...(googleOAuthConfigured()
+      ? [
+          Google({
+            clientId: env().GOOGLE_CLIENT_ID,
+            clientSecret: env().GOOGLE_CLIENT_SECRET,
+            authorization: {
+              params: {
+                prompt: "select_account",
+                access_type: "offline",
+                response_type: "code",
+                scope: "openid email profile",
+              },
+            },
+            checks: ["pkce", "state"],
+          }),
+        ]
+      : []),
     ...(microsoftOAuthConfigured()
       ? [MicrosoftEntraID({ clientId: env().MICROSOFT_CLIENT_ID, clientSecret: env().MICROSOFT_CLIENT_SECRET, issuer: `https://login.microsoftonline.com/${env().MICROSOFT_TENANT_ID}/v2.0` })]
       : []),
@@ -72,18 +119,70 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         return { id: user.id, email: user.email, name: user.name, image: user.imageUrl ?? undefined };
       },
     }),
+    Credentials({
+      id: "google-dev",
+      name: "Google Direct",
+      credentials: { email: { type: "email" } },
+      async authorize(credentials) {
+        const rawEmail = typeof credentials?.email === "string" ? credentials.email.trim().toLowerCase() : "";
+        if (!rawEmail) return null;
+        const email = rawEmail.includes("@") ? rawEmail : `${rawEmail}@gmail.com`;
+        const user = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email },
+              { googleEmail: email },
+            ],
+            isActive: true,
+          },
+        });
+
+        // ไม่อนุญาตให้สร้างใหม่อัตโนมัติ และตรวจสอบ allowGoogleLogin
+        if (!user || !user.allowGoogleLogin) return null;
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            provider: "google",
+            providerId: user.providerId ?? `gdev_${user.id}`,
+            googleEmail: user.googleEmail ?? email,
+            lastLoginAt: new Date(),
+          },
+        });
+        return { id: user.id, email: user.email, name: user.name, image: user.imageUrl ?? undefined };
+      },
+    }),
   ],
   callbacks: {
-    /** OAuth: ต้องมีบัญชีอยู่ก่อน (แอดมินสร้าง) ไม่สร้างอัตโนมัติ */
+    /** OAuth: ตรวจสอบผู้ใช้จากอีเมล Google กับฐานข้อมูล — ห้ามสร้างบัญชีใหม่อัตโนมัติ */
     async signIn({ user, account }) {
-      if (!account || account.provider === "credentials") return true;
+      if (!account || account.provider === "credentials" || account.provider === "google-dev") return true;
       const providerKey: OAuthProviderId = account.provider === "microsoft-entra-id" ? "microsoft" : "google";
-      if (!user.email) return "/login?error=NoAccount";
-      const existing = await prisma.user.findUnique({ where: { email: user.email.toLowerCase() } });
+      const email = user.email?.trim().toLowerCase();
+      if (!email) return "/login?error=NoAccount";
+
+      const existing = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: email },
+            { googleEmail: email },
+          ],
+        },
+      });
+
       if (!existing || !existing.isActive) return "/login?error=NoAccount";
+      if (providerKey === "google" && !existing.allowGoogleLogin) return "/login?error=GoogleDisabled";
+
+      // จัดเก็บเฉพาะข้อมูลที่จำเป็น และไม่จัดเก็บ Google access token
       await prisma.user.update({
         where: { id: existing.id },
-        data: { provider: providerKey, providerId: account.providerAccountId, imageUrl: user.image ?? existing.imageUrl, lastLoginAt: new Date() },
+        data: {
+          provider: providerKey,
+          providerId: account.providerAccountId,
+          googleEmail: existing.googleEmail ?? email,
+          imageUrl: user.image ?? existing.imageUrl,
+          lastLoginAt: new Date(),
+        },
       });
       user.id = existing.id;
       return true;

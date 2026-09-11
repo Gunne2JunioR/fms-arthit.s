@@ -73,6 +73,25 @@ export function UsersTableCard({
       ),
     },
     { key: "roles", header: t("users.colRoles"), render: (u) => u.roles.map((r) => localizedName(r, locale)).join(", ") },
+    {
+      key: "google",
+      header: t("users.colGoogle"),
+      render: (u) => (
+        <div className="text-xs">
+          {u.allowGoogleLogin ? (
+            <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 font-medium">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" />
+              {u.googleEmail ? u.googleEmail : t("users.googleLinkedPrimary")}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+              <span className="h-2 w-2 rounded-full bg-zinc-300 dark:bg-zinc-600 inline-block" />
+              {t("users.googleDisabled")}
+            </span>
+          )}
+        </div>
+      ),
+    },
     { key: "status", header: t("common.colStatus"), render: (u) => <StatusPill tone={u.isActive ? "ok" : "bad"}>{t(u.isActive ? "status.active" : "status.inactive")}</StatusPill> },
     { key: "lastLogin", header: t("users.colLastLogin"), render: (u) => formatDate(u.lastLoginAt, locale, { time: true }) },
   ];

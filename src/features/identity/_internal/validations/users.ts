@@ -26,15 +26,25 @@ export const listUsersQuerySchema = z.object({
   roleId: z.string().uuid().optional(),
 });
 
+export const googleEmailSchema = z.union([
+  emailSchema,
+  z.literal("").transform(() => null),
+  z.null(),
+]).optional();
+
 export const createUserSchema = z.object({
   email: emailSchema,
   name: z.string().trim().min(1).max(255),
+  googleEmail: googleEmailSchema,
+  allowGoogleLogin: z.boolean().optional().default(true),
   roles: roleAssignmentsSchema,
 });
 
 export const updateUserSchema = z.object({
   userId: z.string().uuid(),
   name: z.string().trim().min(1).max(255).optional(),
+  googleEmail: googleEmailSchema,
+  allowGoogleLogin: z.boolean().optional(),
   roles: roleAssignmentsSchema.optional(),
   mustChangePassword: z.boolean().optional(),
 });

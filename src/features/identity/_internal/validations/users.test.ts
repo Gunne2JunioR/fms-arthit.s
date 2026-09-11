@@ -25,4 +25,33 @@ describe("roleAssignments — กันบทบาทซ้ำในคำข�
     expect(updateUserSchema.safeParse({ userId: ROLE_A, roles: [assign(ROLE_B), assign(ROLE_B)] }).success).toBe(false);
     expect(updateUserSchema.safeParse({ userId: ROLE_A, name: "A" }).success).toBe(true);
   });
+
+  it("createUser & updateUser: googleEmail และ allowGoogleLogin ทำงานถูกต้อง", () => {
+    const created = createUserSchema.parse({
+      email: "a@b.co",
+      name: "A",
+      googleEmail: "TEST.GOOGLE@gmail.com",
+      roles: [assign(ROLE_A)],
+    });
+    expect(created.googleEmail).toBe("test.google@gmail.com");
+    expect(created.allowGoogleLogin).toBe(true);
+
+    const emptyGoogleEmail = createUserSchema.parse({
+      email: "a@b.co",
+      name: "A",
+      googleEmail: "",
+      allowGoogleLogin: false,
+      roles: [assign(ROLE_A)],
+    });
+    expect(emptyGoogleEmail.googleEmail).toBeNull();
+    expect(emptyGoogleEmail.allowGoogleLogin).toBe(false);
+
+    const invalidGoogleEmail = createUserSchema.safeParse({
+      email: "a@b.co",
+      name: "A",
+      googleEmail: "not-an-email",
+      roles: [assign(ROLE_A)],
+    });
+    expect(invalidGoogleEmail.success).toBe(false);
+  });
 });

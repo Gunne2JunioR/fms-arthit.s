@@ -11,6 +11,7 @@ const schema = z.object({
   SMTP_FROM: z.string().optional().default("App <no-reply@localhost>"),
   GOOGLE_CLIENT_ID: z.string().optional().default(""),
   GOOGLE_CLIENT_SECRET: z.string().optional().default(""),
+  GOOGLE_REDIRECT_URI: z.string().optional().default(""),
   MICROSOFT_CLIENT_ID: z.string().optional().default(""),
   MICROSOFT_CLIENT_SECRET: z.string().optional().default(""),
   MICROSOFT_TENANT_ID: z.string().optional().default("common"),

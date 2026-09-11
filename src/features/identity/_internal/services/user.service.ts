@@ -13,6 +13,7 @@ import type { ScopeType } from "../grants";
 
 export interface UserListItem {
   id: string; email: string; name: string; isActive: boolean; mustChangePassword: boolean; lastLoginAt: string | null;
+  googleEmail: string | null; allowGoogleLogin: boolean;
   roles: { id: string; code: string; nameTh: string; nameEn: string; scopeType: ScopeType; scopeId: string | null }[];
 }
 
@@ -41,6 +42,8 @@ export async function listUsers(tenantId: string, q: ListUsersQuery): Promise<{ 
     items: rows.map((r) => ({
       id: r.user.id, email: r.user.email, name: r.user.name, isActive: r.isActive && r.user.isActive, mustChangePassword: r.user.mustChangePassword,
       lastLoginAt: r.user.lastLoginAt?.toISOString() ?? null,
+      googleEmail: r.user.googleEmail ?? null,
+      allowGoogleLogin: r.user.allowGoogleLogin,
       roles: r.userRoles.map((ur) => ({ ...ur.role, scopeType: ur.scopeType, scopeId: ur.scopeId })),
     })),
   };
@@ -104,17 +107,28 @@ function assertCanActOnTarget(targetRoles: { role: { code: string } }[], actor: 
 function setupLink(raw: string) { return `${env().APP_URL}/reset-password/${raw}`; }
 function verifyLink(raw: string) { return `${env().APP_URL}/verify-email/${raw}`; }
 
-export async function createUser(input: Actor & { email: string; name: string; roles: RoleAssignment[] }) {
+export async function createUser(input: Actor & { email: string; name: string; roles: RoleAssignment[]; googleEmail?: string | null; allowGoogleLogin?: boolean }) {
   const email = input.email.toLowerCase();
   if (await prisma.user.findUnique({ where: { email } })) throw errors.conflict("email_taken");
+  const googleEmail = input.googleEmail ? input.googleEmail.toLowerCase().trim() : null;
+  if (googleEmail) {
+    if (await prisma.user.findUnique({ where: { googleEmail } })) throw errors.conflict("google_email_taken");
+  }
   await assertRolesInTenant(input.roles, input.tenantId, prisma);
   await assertCanAssignRoles(input.roles, input, prisma);
   const { user, rawToken, expiresAt } = await prisma.$transaction(async (tx) => {
-    const user = await tx.user.create({ data: { email, name: input.name } });
+    const user = await tx.user.create({
+      data: {
+        email,
+        name: input.name,
+        googleEmail,
+        allowGoogleLogin: input.allowGoogleLogin ?? true,
+      },
+    });
     const ut = await tx.userTenant.create({ data: { userId: user.id, tenantId: input.tenantId } });
     await tx.userRole.createMany({ data: input.roles.map((r) => ({ userTenantId: ut.id, ...r })) });
     const { raw, expiresAt } = await issueToken({ userId: user.id, purpose: "PASSWORD_RESET", ttlMs: TOKEN_TTL.PASSWORD_SETUP }, tx);
-    await writeAudit({ tenantId: input.tenantId, actorId: input.actorId, action: "user.create", entity: "user", entityId: user.id, after: { email, name: input.name, roles: input.roles } }, tx);
+    await writeAudit({ tenantId: input.tenantId, actorId: input.actorId, action: "user.create", entity: "user", entityId: user.id, after: { email, name: input.name, googleEmail, allowGoogleLogin: input.allowGoogleLogin ?? true, roles: input.roles } }, tx);
     return { user, rawToken: raw, expiresAt };
   });
   // B17: คืน delivered ให้ผู้เรียกด้วย — SMTP ที่ตั้งค่าผิดจะล้มเงียบ ๆ (mailer ไม่เคย throw) แอดมิน
@@ -123,12 +137,27 @@ export async function createUser(input: Actor & { email: string; name: string; r
   return { user, rawToken, expiresAt, mailDelivered: delivered };
 }
 
-export async function updateUser(input: Actor & { userId: string; name?: string; roles?: RoleAssignment[]; mustChangePassword?: boolean }) {
+export async function updateUser(input: Actor & { userId: string; name?: string; roles?: RoleAssignment[]; mustChangePassword?: boolean; googleEmail?: string | null; allowGoogleLogin?: boolean }) {
   if (input.userId === input.actorId && (input.roles !== undefined || input.mustChangePassword !== undefined)) throw errors.forbidden("cannot_edit_self");
   await prisma.$transaction(async (tx) => {
     const ut = await membership(input.userId, input.tenantId, tx);
     assertCanActOnTarget(ut.userRoles, input);
-    const before = { name: ut.user.name, roles: ut.userRoles.map((r) => ({ roleId: r.roleId, scopeType: r.scopeType, scopeId: r.scopeId })), mustChangePassword: ut.user.mustChangePassword };
+    const before = {
+      name: ut.user.name,
+      roles: ut.userRoles.map((r) => ({ roleId: r.roleId, scopeType: r.scopeType, scopeId: r.scopeId })),
+      mustChangePassword: ut.user.mustChangePassword,
+      googleEmail: ut.user.googleEmail,
+      allowGoogleLogin: ut.user.allowGoogleLogin,
+    };
+    let googleEmailUpdate: string | null | undefined = undefined;
+    if (input.googleEmail !== undefined) {
+      const gEmail = input.googleEmail ? input.googleEmail.toLowerCase().trim() : null;
+      if (gEmail) {
+        const existing = await tx.user.findFirst({ where: { googleEmail: gEmail, id: { not: input.userId } } });
+        if (existing) throw errors.conflict("google_email_taken");
+      }
+      googleEmailUpdate = gEmail;
+    }
     if (input.roles) {
       await assertRolesInTenant(input.roles, input.tenantId, tx);
       await assertCanAssignRoles(input.roles, input, tx);
@@ -139,10 +168,19 @@ export async function updateUser(input: Actor & { userId: string; name?: string;
       await tx.userRole.deleteMany({ where: { userTenantId: ut.id } });
       await tx.userRole.createMany({ data: input.roles.map((r) => ({ userTenantId: ut.id, ...r })) });
     }
-    if (input.name !== undefined || input.mustChangePassword !== undefined) {
-      await tx.user.update({ where: { id: input.userId }, data: { name: input.name, mustChangePassword: input.mustChangePassword } });
+    const hasUserUpdates = input.name !== undefined || input.mustChangePassword !== undefined || googleEmailUpdate !== undefined || input.allowGoogleLogin !== undefined;
+    if (hasUserUpdates) {
+      await tx.user.update({
+        where: { id: input.userId },
+        data: {
+          ...(input.name !== undefined ? { name: input.name } : {}),
+          ...(input.mustChangePassword !== undefined ? { mustChangePassword: input.mustChangePassword } : {}),
+          ...(googleEmailUpdate !== undefined ? { googleEmail: googleEmailUpdate } : {}),
+          ...(input.allowGoogleLogin !== undefined ? { allowGoogleLogin: input.allowGoogleLogin } : {}),
+        },
+      });
     }
-    await writeAudit({ tenantId: input.tenantId, actorId: input.actorId, action: "user.update", entity: "user", entityId: input.userId, before, after: { name: input.name, roles: input.roles, mustChangePassword: input.mustChangePassword } }, tx);
+    await writeAudit({ tenantId: input.tenantId, actorId: input.actorId, action: "user.update", entity: "user", entityId: input.userId, before, after: { name: input.name, roles: input.roles, mustChangePassword: input.mustChangePassword, googleEmail: googleEmailUpdate, allowGoogleLogin: input.allowGoogleLogin } }, tx);
   });
 }
 

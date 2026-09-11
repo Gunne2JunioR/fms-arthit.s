@@ -56,6 +56,24 @@ export function UserDialog({
           <LiyonField label={t("users.email")} htmlFor="user-email">
             <input id="user-email" type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} required disabled={mode === "edit"} />
           </LiyonField>
+          <LiyonField label={t("users.googleEmail")} htmlFor="user-google-email" hint={t("users.googleEmailHint")}>
+            <input
+              id="user-google-email"
+              type="email"
+              value={form.googleEmail}
+              placeholder={t("users.googleEmailPh")}
+              onChange={(e) => setForm((f) => ({ ...f, googleEmail: e.target.value }))}
+              disabled={isSelf}
+            />
+          </LiyonField>
+          <LiyonSwitchRow
+            id="allow-google-login"
+            checked={form.allowGoogleLogin}
+            onCheckedChange={(c) => setForm((f) => ({ ...f, allowGoogleLogin: c }))}
+            disabled={isSelf}
+            label={t("users.allowGoogleLogin")}
+            description={t("users.allowGoogleLoginDesc")}
+          />
           <LiyonField label={t("users.roles")} hint={isSelf ? t("users.cannotEditSelf") : t("users.rolesHint")}>
             <div className="flex flex-col gap-2">
               {assignableRoles.map((role) => (

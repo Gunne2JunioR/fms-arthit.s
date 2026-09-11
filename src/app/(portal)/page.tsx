@@ -16,12 +16,14 @@ export default async function PortalHomePage() {
 
   return (
     <div className="space-y-16 pb-20">
-      {/* 3D Resadex-style Hero Section */}
+      {/* Clean Modern Creative Hero Section */}
       <PortalHero
         facultyTitle={t("portal.facultyTitle")}
         heroTitle1={t("portal.heroTitle1")}
         heroTitle2={t("portal.heroTitle2")}
         heroDesc={t("portal.heroDesc")}
+        scriptTag={t("portal.heroScriptTag")}
+        getStartedLabel={t("portal.getStarted")}
         exploreProgramsLabel={t("portal.explorePrograms")}
         allNewsLabel={t("portal.allNews")}
         badgeNewLabel={t("portal.heroBadgeNew")}

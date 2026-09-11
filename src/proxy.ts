@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { CURRENT_PATH_HEADER } from "@/shared/lib/security/callback-url";
+import { CURRENT_PATH_HEADER, safeCallbackUrl } from "@/shared/lib/security/callback-url";
 
-const PUBLIC_PREFIXES = ["/reset-password/", "/verify-email/", "/api/auth/", "/_next/", "/favicon.ico", "/news", "/verify", "/uploads/"];
-const PUBLIC_EXACT = ["/", "/news", "/programs", "/personnel", "/calendar", "/verify"];
+const PUBLIC_PREFIXES = ["/reset-password/", "/verify-email/", "/api/auth/", "/_next/", "/favicon.ico", "/uploads/"];
+const PUBLIC_EXACT = ["/verify"];
 const GUEST_ONLY = ["/login", "/forgot-password"];
 
 /** ด่านตรวจระดับ route — ไม่แตะ DB (edge) · สิทธิ์ละเอียดตรวจใน Server Action ผ่าน requirePermission */
@@ -29,7 +29,12 @@ export async function proxy(req: NextRequest) {
   const loggedIn = !!token && !token.invalid && !!token.userId;
 
   if (GUEST_ONLY.includes(pathname)) {
-    return loggedIn ? NextResponse.redirect(new URL("/dashboard", req.url)) : NextResponse.next();
+    if (loggedIn) {
+      const callbackUrl = req.nextUrl.searchParams.get("callbackUrl");
+      const target = safeCallbackUrl(callbackUrl);
+      return NextResponse.redirect(new URL(target, req.url));
+    }
+    return NextResponse.next();
   }
   if (!loggedIn) {
     const login = new URL("/login", req.url);
