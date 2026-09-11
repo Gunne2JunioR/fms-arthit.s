@@ -18,6 +18,7 @@ interface Props {
   adminConsoleLabel: string;
   loginLabel: string;
   isLoggedIn: boolean;
+  logoUrl?: string | null;
 }
 
 export function PortalHeader({
@@ -27,6 +28,7 @@ export function PortalHeader({
   adminConsoleLabel,
   loginLabel,
   isLoggedIn,
+  logoUrl,
 }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -35,8 +37,13 @@ export function PortalHeader({
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-sm group-hover:scale-105 transition-transform">
-            <GraduationCap className="h-6 w-6" />
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-sm group-hover:scale-105 transition-transform overflow-hidden">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoUrl} alt={facultyTitle} className="w-full h-full object-contain p-1 bg-white" />
+            ) : (
+              <GraduationCap className="h-6 w-6" />
+            )}
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-base tracking-tight leading-tight text-foreground">

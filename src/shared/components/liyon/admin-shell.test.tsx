@@ -144,4 +144,15 @@ describe("AdminShell", () => {
     );
     expect(screen.getByText("3")).toBeTruthy();
   });
+
+  it("แสดงรูปโลโก้ของแบรนด์เมื่อกำหนด brandLogoUrl และใช้ SVG เริ่มต้นเมื่อไม่ได้กำหนด", () => {
+    const { rerender } = render(
+      <AdminShell {...baseProps({ brandLogoUrl: "/uploads/logos/test-logo.png" })} />
+    );
+    const img = screen.getByRole("img", { name: "VibeCore" });
+    expect(img.getAttribute("src")).toBe("/uploads/logos/test-logo.png");
+
+    rerender(<AdminShell {...baseProps({ brandLogoUrl: null })} />);
+    expect(screen.queryByRole("img", { name: "VibeCore" })).toBeNull();
+  });
 });

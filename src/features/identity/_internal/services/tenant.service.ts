@@ -63,3 +63,14 @@ export const resolvePalette = cache(async (): Promise<PaletteId> => {
     return DEFAULT_PALETTE;
   }
 });
+
+/** ดึงการตั้งค่าองค์กร (ชื่อ, โลโก้, ธีม) ของ tenant ปัจจุบัน หรือ tenant แรกของระบบ · ไม่ throw */
+export const resolveTenantSettings = cache(async (): Promise<TenantSettings | null> => {
+  try {
+    const tenantId = (await sessionTenantId()) || (await prisma.tenant.findFirst({ orderBy: { createdAt: "asc" }, select: { id: true } }))?.id;
+    return tenantId ? await getTenantSettings(tenantId) : null;
+  } catch {
+    return null;
+  }
+});
+

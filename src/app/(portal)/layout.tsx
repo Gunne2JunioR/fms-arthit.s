@@ -1,4 +1,4 @@
-import { auth } from "@/features/identity/server";
+import { auth, resolveTenantSettings } from "@/features/identity/server";
 import { getT } from "@/i18n/server";
 import { GraduationCap } from "lucide-react";
 import { PortalHeader } from "@/components/portal/portal-header";
@@ -8,9 +8,10 @@ export default async function PortalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [t, session] = await Promise.all([
+  const [t, session, tenantSettings] = await Promise.all([
     getT(),
     auth().catch(() => null),
+    resolveTenantSettings().catch(() => null),
   ]);
 
   const navLinks = [
@@ -31,6 +32,7 @@ export default async function PortalLayout({
         adminConsoleLabel={t("portal.adminConsole")}
         loginLabel={t("portal.login")}
         isLoggedIn={Boolean(session?.user)}
+        logoUrl={tenantSettings?.logoUrl}
       />
 
       {/* Main Content */}
