@@ -42,12 +42,16 @@ services:
       SEED_ALLOW_PROD: ${SEED_ALLOW_PROD:-1}
     ports:
       - "${APP_PORT:-3010}:3010"
+    volumes:
+      - uploads_data:/app/public/uploads
     networks:
       - fms-network
 
 volumes:
   postgres_data:
     name: fms_postgres_data
+  uploads_data:
+    name: fms_uploads_data
 
 networks:
   fms-network:

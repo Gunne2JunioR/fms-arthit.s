@@ -10,7 +10,7 @@ import { P } from "../../permissions";
 // Supported Formats: Pictures & Movies (Comprehensive MIME & Extension Mappings)
 // ══════════════════════════════════════════════════════════════════════════════
 
-export const ALLOWED_IMAGE_MIME_TYPES = new Set([
+const ALLOWED_IMAGE_MIME_TYPES = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
@@ -25,7 +25,7 @@ export const ALLOWED_IMAGE_MIME_TYPES = new Set([
   "image/vnd.microsoft.icon",
 ]);
 
-export const ALLOWED_VIDEO_MIME_TYPES = new Set([
+const ALLOWED_VIDEO_MIME_TYPES = new Set([
   "video/mp4",
   "video/webm",
   "video/quicktime", // .mov

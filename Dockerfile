@@ -52,7 +52,8 @@ RUN groupadd --system --gid 1001 nodejs && \
     useradd --system --uid 1001 -g nodejs nextjs
 
 # Copy public static assets and build artifacts
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+RUN mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app/public
 
 # Set correct permissions for Next.js prerender cache
 RUN mkdir .next && chown nextjs:nodejs .next
