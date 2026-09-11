@@ -104,7 +104,18 @@ export function PortalHero({
             playsInline
             className="h-full w-full object-cover object-center opacity-35 dark:opacity-25 filter contrast-105"
           >
-            <source src={videoBgUrl} type="video/mp4" />
+            <source
+              src={videoBgUrl}
+              type={
+                videoBgUrl.endsWith(".webm")
+                  ? "video/webm"
+                  : videoBgUrl.endsWith(".ogg") || videoBgUrl.endsWith(".ogv")
+                  ? "video/ogg"
+                  : videoBgUrl.endsWith(".mov")
+                  ? "video/quicktime"
+                  : "video/mp4"
+              }
+            />
           </video>
         ) : (
           /* Background Image */

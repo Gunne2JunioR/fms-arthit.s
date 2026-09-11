@@ -165,7 +165,7 @@ export const MESSAGES: Dictionary = {
   "me.uploading": { th: "กำลังอัปโหลด...", en: "Uploading...", cn: "上传中..." },
   "me.uploadSuccess": { th: "อัปโหลดรูปภาพโปรไฟล์สำเร็จ", en: "Profile picture uploaded", cn: "头像上传成功" },
   "me.removeAvatar": { th: "ลบรูปโปรไฟล์", en: "Remove Picture", cn: "移除头像" },
-  "me.avatarHint": { th: "รองรับไฟล์ PNG, JPG, WebP ขนาดไม่เกิน 5 MB", en: "Supports PNG, JPG, WebP up to 5 MB", cn: "支持 PNG、JPG、WebP 格式，最大 5 MB" },
+  "me.avatarHint": { th: "รองรับไฟล์ภาพทุกประเภท (PNG, JPG, WebP, GIF, AVIF, HEIC ฯลฯ) ขนาดไม่เกิน 10 MB", en: "Supports all image formats (PNG, JPG, WebP, GIF, AVIF, HEIC, etc.) up to 10 MB", cn: "支持所有图片格式 (PNG, JPG, WebP, GIF, AVIF, HEIC 等)，最大 10 MB" },
   "me.name": { th: "ชื่อที่แสดง", en: "Display name", cn: "显示姓名" },
   "me.language": { th: "ภาษาที่ใช้", en: "Language", cn: "界面语言" },
   "me.localeTh": { th: "ไทย", en: "ไทย", cn: "泰语 (Thai)" },

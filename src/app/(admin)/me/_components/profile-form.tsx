@@ -130,7 +130,7 @@ export function ProfileForm({ initial }: { initial: InitialProfile }) {
                     ref={fileInputRef}
                     id="me-avatar"
                     type="file"
-                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    accept="image/*"
                     className="hidden"
                     onChange={handleFileUpload}
                   />

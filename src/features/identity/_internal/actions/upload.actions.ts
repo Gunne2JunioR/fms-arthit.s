@@ -6,14 +6,82 @@ import { runAction, type ActionResult } from "@/shared/lib/result";
 import { requirePermission } from "../rbac";
 import { P } from "../../permissions";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
-const ALLOWED_MIME_TYPES = new Set([
+// ══════════════════════════════════════════════════════════════════════════════
+// Supported Formats: Pictures & Movies (Comprehensive MIME & Extension Mappings)
+// ══════════════════════════════════════════════════════════════════════════════
+
+export const ALLOWED_IMAGE_MIME_TYPES = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
   "image/svg+xml",
   "image/gif",
+  "image/avif",
+  "image/heic",
+  "image/heif",
+  "image/bmp",
+  "image/tiff",
+  "image/x-icon",
+  "image/vnd.microsoft.icon",
 ]);
+
+export const ALLOWED_VIDEO_MIME_TYPES = new Set([
+  "video/mp4",
+  "video/webm",
+  "video/quicktime", // .mov
+  "video/x-msvideo", // .avi
+  "video/x-matroska", // .mkv
+  "video/mpeg",
+  "video/ogg",
+  "video/3gpp",
+  "video/3gpp2",
+  "video/x-flv",
+  "video/x-ms-wmv",
+]);
+
+const MAX_IMAGE_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_MEDIA_FILE_SIZE = 100 * 1024 * 1024; // 100 MB for Movies / Videos
+
+// Safe Extension Resolver
+function resolveSafeExtension(file: File, defaultFallback: string): string {
+  const extMatch = file.name.match(/\.([a-zA-Z0-9]+)$/);
+  if (extMatch) {
+    const rawExt = extMatch[1].toLowerCase();
+    const validExts = [
+      // Pictures
+      "png", "jpg", "jpeg", "webp", "svg", "gif", "avif", "heic", "heif", "bmp", "tiff", "ico",
+      // Movies / Videos
+      "mp4", "webm", "mov", "avi", "mkv", "mpeg", "mpg", "ogv", "3gp", "flv", "wmv", "m4v",
+    ];
+    if (validExts.includes(rawExt)) return rawExt;
+  }
+
+  // Fallback by MIME type
+  const mimeMap: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/svg+xml": "svg",
+    "image/gif": "gif",
+    "image/avif": "avif",
+    "image/heic": "heic",
+    "image/heif": "heif",
+    "image/bmp": "bmp",
+    "image/tiff": "tiff",
+    "image/x-icon": "ico",
+    "video/mp4": "mp4",
+    "video/webm": "webm",
+    "video/quicktime": "mov",
+    "video/x-msvideo": "avi",
+    "video/x-matroska": "mkv",
+    "video/mpeg": "mpg",
+    "video/ogg": "ogv",
+    "video/3gpp": "3gp",
+    "video/x-flv": "flv",
+    "video/x-ms-wmv": "wmv",
+  };
+  return mimeMap[file.type] || defaultFallback;
+}
 
 export async function uploadLogoAction(formData: FormData): Promise<ActionResult<{ url: string }>> {
   return runAction(async () => {
@@ -24,22 +92,21 @@ export async function uploadLogoAction(formData: FormData): Promise<ActionResult
       throw new Error("กรุณาเลือกไฟล์รูปภาพที่ต้องการอัปโหลด");
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      throw new Error("ขนาดไฟล์ต้องไม่เกิน 5 MB");
+    if (file.size > MAX_IMAGE_FILE_SIZE) {
+      throw new Error("ขนาดไฟล์รูปภาพต้องไม่เกิน 10 MB");
     }
 
-    if (!ALLOWED_MIME_TYPES.has(file.type)) {
-      throw new Error("รองรับเฉพาะไฟล์รูปภาพ (PNG, JPG, WebP, SVG, GIF)");
+    const ext = resolveSafeExtension(file, "png");
+    const isAllowedImage = ALLOWED_IMAGE_MIME_TYPES.has(file.type) ||
+      ["png", "jpg", "jpeg", "webp", "svg", "gif", "avif", "heic", "heif", "bmp", "tiff", "ico"].includes(ext);
+
+    if (!isAllowedImage) {
+      throw new Error("รองรับไฟล์ภาพทุกประเภท (PNG, JPG, WebP, SVG, GIF, AVIF, HEIC, BMP, TIFF, ICO)");
     }
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-
-    // สร้างชื่อไฟล์ที่ปลอดภัยและไม่ชนกัน
-    const extMatch = file.name.match(/\.([a-zA-Z0-9]+)$/);
-    const ext = extMatch ? extMatch[1].toLowerCase() : "png";
-    const cleanExt = ["png", "jpg", "jpeg", "webp", "svg", "gif"].includes(ext) ? ext : "png";
-    const filename = `logo-${ctx.tenantId.slice(0, 8)}-${Date.now()}.${cleanExt}`;
+    const filename = `logo-${ctx.tenantId.slice(0, 8)}-${Date.now()}.${ext}`;
 
     const uploadDir = join(process.cwd(), "public", "uploads", "logos");
     await mkdir(uploadDir, { recursive: true });
@@ -62,21 +129,21 @@ export async function uploadAvatarAction(formData: FormData): Promise<ActionResu
       throw new Error("กรุณาเลือกไฟล์รูปภาพที่ต้องการอัปโหลด");
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      throw new Error("ขนาดไฟล์ต้องไม่เกิน 5 MB");
+    if (file.size > MAX_IMAGE_FILE_SIZE) {
+      throw new Error("ขนาดไฟล์รูปภาพต้องไม่เกิน 10 MB");
     }
 
-    if (!ALLOWED_MIME_TYPES.has(file.type)) {
-      throw new Error("รองรับเฉพาะไฟล์รูปภาพ (PNG, JPG, WebP, SVG, GIF)");
+    const ext = resolveSafeExtension(file, "png");
+    const isAllowedImage = ALLOWED_IMAGE_MIME_TYPES.has(file.type) ||
+      ["png", "jpg", "jpeg", "webp", "gif", "avif", "heic", "heif", "bmp", "tiff", "ico", "svg"].includes(ext);
+
+    if (!isAllowedImage) {
+      throw new Error("รองรับไฟล์ภาพทุกประเภท (PNG, JPG, WebP, GIF, AVIF, HEIC, BMP, TIFF, SVG)");
     }
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-
-    const extMatch = file.name.match(/\.([a-zA-Z0-9]+)$/);
-    const ext = extMatch ? extMatch[1].toLowerCase() : "png";
-    const cleanExt = ["png", "jpg", "jpeg", "webp", "gif"].includes(ext) ? ext : "png";
-    const filename = `avatar-${ctx.userId.slice(0, 8)}-${Date.now()}.${cleanExt}`;
+    const filename = `avatar-${ctx.userId.slice(0, 8)}-${Date.now()}.${ext}`;
 
     const uploadDir = join(process.cwd(), "public", "uploads", "avatars");
     await mkdir(uploadDir, { recursive: true });
@@ -89,18 +156,6 @@ export async function uploadAvatarAction(formData: FormData): Promise<ActionResu
   });
 }
 
-const MAX_MEDIA_FILE_SIZE = 50 * 1024 * 1024; // 50 MB (รองรับ MPEG-4 Video)
-const ALLOWED_MEDIA_MIME_TYPES = new Set([
-  "video/mp4",
-  "video/webm",
-  "video/quicktime",
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/svg+xml",
-  "image/gif",
-]);
-
 export async function uploadMediaAction(formData: FormData): Promise<ActionResult<{ url: string; type: "video" | "image" }>> {
   return runAction(async () => {
     const { requireSession } = await import("../session");
@@ -112,22 +167,27 @@ export async function uploadMediaAction(formData: FormData): Promise<ActionResul
     }
 
     if (file.size > MAX_MEDIA_FILE_SIZE) {
-      throw new Error("ขนาดไฟล์สื่อต้องไม่เกิน 50 MB");
+      throw new Error("ขนาดไฟล์สื่อต้องไม่เกิน 100 MB");
     }
 
-    if (!ALLOWED_MEDIA_MIME_TYPES.has(file.type)) {
-      throw new Error("รองรับเฉพาะไฟล์วิดีโอ MPEG-4 (.mp4), WebM, หรือไฟล์รูปภาพ");
+    const ext = resolveSafeExtension(file, "mp4");
+    const isVideo = ALLOWED_VIDEO_MIME_TYPES.has(file.type) ||
+      file.type.startsWith("video/") ||
+      ["mp4", "webm", "mov", "avi", "mkv", "mpeg", "mpg", "ogv", "3gp", "flv", "wmv", "m4v"].includes(ext);
+
+    const isImage = ALLOWED_IMAGE_MIME_TYPES.has(file.type) ||
+      file.type.startsWith("image/") ||
+      ["png", "jpg", "jpeg", "webp", "svg", "gif", "avif", "heic", "heif", "bmp", "tiff", "ico"].includes(ext);
+
+    if (!isVideo && !isImage) {
+      throw new Error("รองรับไฟล์รูปภาพและไฟล์ภาพยนตร์/วิดีโอทุกประเภท (.mp4, .webm, .mov, .avi, .mkv, .jpg, .png, ฯลฯ)");
     }
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const extMatch = file.name.match(/\.([a-zA-Z0-9]+)$/);
-    const ext = extMatch ? extMatch[1].toLowerCase() : (file.type.startsWith("video/") ? "mp4" : "jpg");
-    const cleanExt = ["mp4", "webm", "mov", "png", "jpg", "jpeg", "webp", "svg", "gif"].includes(ext) ? ext : "mp4";
-    const isVideo = file.type.startsWith("video/") || cleanExt === "mp4" || cleanExt === "webm";
     const subfolder = isVideo ? "videos" : "images";
-    const filename = `media-${ctx.userId.slice(0, 8)}-${Date.now()}.${cleanExt}`;
+    const filename = `media-${ctx.userId.slice(0, 8)}-${Date.now()}.${ext}`;
 
     const uploadDir = join(process.cwd(), "public", "uploads", subfolder);
     await mkdir(uploadDir, { recursive: true });
@@ -142,4 +202,5 @@ export async function uploadMediaAction(formData: FormData): Promise<ActionResul
     };
   });
 }
+
 
