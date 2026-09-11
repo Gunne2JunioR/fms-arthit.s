@@ -1,5 +1,5 @@
 import { prisma } from "@/shared/lib/infra/prisma";
-import type { ProgramDegreeLevel, ProgramStatus } from "@/generated/prisma";
+import type { Prisma, ProgramDegreeLevel, ProgramStatus } from "@/generated/prisma";
 import type { CreateProgramInput, UpdateProgramInput } from "./validations";
 
 export interface ProgramDto {
@@ -22,19 +22,42 @@ export interface ProgramDto {
   updatedAt: Date;
 }
 
-function mapProgram(p: Record<string, unknown>): ProgramDto {
+type ProgramRecord = Prisma.ProgramGetPayload<Record<string, never>>;
+
+function mapProgram(p: ProgramRecord): ProgramDto {
   return {
-    ...(p as unknown as ProgramDto),
+    id: p.id,
+    tenantId: p.tenantId,
+    code: p.code,
+    nameTh: p.nameTh,
+    nameEn: p.nameEn,
+    degreeLevel: p.degreeLevel,
+    degreeNameTh: p.degreeNameTh,
+    degreeNameEn: p.degreeNameEn,
+    curriculumYear: p.curriculumYear,
+    totalCredits: p.totalCredits,
     tuitionFeeSemester: Number(p.tuitionFeeSemester) || 0,
+    durationYears: p.durationYears,
+    brochureFileUrl: p.brochureFileUrl,
+    description: p.description,
+    status: p.status,
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
   };
 }
 
-export async function listPrograms(tenantId: string, level?: string): Promise<ProgramDto[]> {
+export async function listPrograms(tenantId?: string, level?: string): Promise<ProgramDto[]> {
+  const where: { tenantId?: string; degreeLevel?: ProgramDegreeLevel } = {};
+  if (tenantId?.trim()) {
+    where.tenantId = tenantId;
+  } else {
+    const defaultTenant = await prisma.tenant.findFirst({ select: { id: true } });
+    if (defaultTenant) where.tenantId = defaultTenant.id;
+  }
+  if (level) where.degreeLevel = level as ProgramDegreeLevel;
+
   const list = await prisma.program.findMany({
-    where: {
-      tenantId,
-      ...(level ? { degreeLevel: level as ProgramDegreeLevel } : {}),
-    },
+    where,
     orderBy: [
       { degreeLevel: "asc" },
       { code: "asc" },

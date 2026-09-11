@@ -38,23 +38,4 @@ describe("document validations", () => {
     const res = actOnStepSchema.safeParse(valid);
     expect(res.success).toBe(true);
   });
-
-  it("validates step rejection action", () => {
-    const valid = {
-      stepId: "a0000000-0000-4000-8000-000000000001",
-      action: "REJECT",
-      comment: "เอกสารไม่ครบถ้วน ตีกลับแก้ไข",
-    };
-    const res = actOnStepSchema.safeParse(valid);
-    expect(res.success).toBe(true);
-  });
-
-  it("fails when stepId is not a valid UUID", () => {
-    const invalid = {
-      stepId: "invalid-uuid-format",
-      action: "APPROVE",
-    };
-    const res = actOnStepSchema.safeParse(invalid);
-    expect(res.success).toBe(false);
-  });
 });

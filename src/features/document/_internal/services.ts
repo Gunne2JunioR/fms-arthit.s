@@ -27,7 +27,7 @@ export interface DocumentRequestDto {
   title: string;
   description: string | null;
   urgency: DocumentUrgency;
-  attachmentUrls: unknown;
+  attachmentUrls: string[];
   currentStep: number;
   totalSteps: number;
   status: DocumentStatus;
@@ -39,6 +39,33 @@ export interface DocumentRequestDto {
     name: string;
   };
   approvalSteps: ApprovalStepDto[];
+}
+
+function mapDocumentRequest(doc: {
+  id: string;
+  tenantId: string;
+  docNumber: string;
+  requesterId: string;
+  docType: DocumentType;
+  title: string;
+  description: string | null;
+  urgency: DocumentUrgency;
+  attachmentUrls: unknown;
+  currentStep: number;
+  totalSteps: number;
+  status: DocumentStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  requester: { id: string; email: string; name: string };
+  approvalSteps: ApprovalStepDto[];
+}): DocumentRequestDto {
+  const urls = Array.isArray(doc.attachmentUrls)
+    ? doc.attachmentUrls.filter((u): u is string => typeof u === "string")
+    : [];
+  return {
+    ...doc,
+    attachmentUrls: urls,
+  };
 }
 
 export async function listDocumentRequests(tenantId: string, status?: string): Promise<DocumentRequestDto[]> {
@@ -66,7 +93,7 @@ export async function listDocumentRequests(tenantId: string, status?: string): P
     },
     orderBy: { createdAt: "desc" },
   });
-  return list as DocumentRequestDto[];
+  return list.map(mapDocumentRequest);
 }
 
 export async function getDocumentRequestById(tenantId: string, id: string): Promise<DocumentRequestDto | null> {
@@ -90,7 +117,7 @@ export async function getDocumentRequestById(tenantId: string, id: string): Prom
       },
     },
   });
-  return doc as DocumentRequestDto | null;
+  return doc ? mapDocumentRequest(doc) : null;
 }
 
 export async function createDocumentRequest(
@@ -136,7 +163,7 @@ export async function createDocumentRequest(
         },
       },
     });
-    return created as DocumentRequestDto;
+    return mapDocumentRequest(created);
   });
 }
 
@@ -185,7 +212,7 @@ export async function actOnDocumentStep(
           },
         },
       });
-      return res as DocumentRequestDto;
+      return mapDocumentRequest(res);
     }
 
     if (step.stepOrder >= doc.totalSteps) {
@@ -200,7 +227,7 @@ export async function actOnDocumentStep(
           },
         },
       });
-      return res as DocumentRequestDto;
+      return mapDocumentRequest(res);
     } else {
       const res = await tx.documentRequest.update({
         where: { id: doc.id },
@@ -213,7 +240,7 @@ export async function actOnDocumentStep(
           },
         },
       });
-      return res as DocumentRequestDto;
+      return mapDocumentRequest(res);
     }
   });
 }

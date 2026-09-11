@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { z } from "zod";
 import { runAction } from "./result";
 import { errors } from "./errors";
@@ -20,9 +20,7 @@ describe("runAction", () => {
     }
   });
   it("ข้อผิดพลาดอื่นกลายเป็น internal ไม่เปิดเผยข้อความ", async () => {
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     const r = await runAction(async () => { throw new Error("secret db detail"); });
     expect(r).toEqual({ ok: false, error: { code: "internal", message: "internal", fieldErrors: undefined } });
-    spy.mockRestore();
   });
 });

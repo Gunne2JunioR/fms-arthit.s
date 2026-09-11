@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { auth } from "@/features/identity/server";
 import { getT } from "@/i18n/server";
-import { LanguageSwitcher } from "@/components/layout/language-switcher";
-import { GraduationCap, LogIn, LayoutDashboard } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { GraduationCap } from "lucide-react";
+import { PortalHeader } from "@/components/portal/portal-header";
 
 export default async function PortalLayout({
   children,
@@ -25,61 +23,15 @@ export default async function PortalLayout({
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-xs">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-sm group-hover:scale-105 transition-transform">
-              <GraduationCap className="h-6 w-6" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-base tracking-tight leading-tight text-foreground">
-                {t("portal.facultyTitle")}
-              </span>
-              <span className="text-xs text-muted-foreground hidden sm:inline">
-                {t("portal.facultyTagline")}
-              </span>
-            </div>
-          </Link>
-
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Actions & Language Switcher */}
-          <div className="flex items-center gap-3">
-            <div className="border rounded-md px-1 py-0.5">
-              <LanguageSwitcher />
-            </div>
-
-            {session?.user ? (
-              <Button asChild size="sm" className="gap-2">
-                <Link href="/dashboard">
-                  <LayoutDashboard className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t("portal.adminConsole")}</span>
-                </Link>
-              </Button>
-            ) : (
-              <Button asChild variant="default" size="sm" className="gap-2">
-                <Link href="/login">
-                  <LogIn className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t("portal.login")}</span>
-                </Link>
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
+      {/* Top Navbar with Responsive Mobile Menu */}
+      <PortalHeader
+        facultyTitle={t("portal.facultyTitle")}
+        facultyTagline={t("portal.facultyTagline")}
+        navLinks={navLinks}
+        adminConsoleLabel={t("portal.adminConsole")}
+        loginLabel={t("portal.login")}
+        isLoggedIn={Boolean(session?.user)}
+      />
 
       {/* Main Content */}
       <main className="flex-1">{children}</main>

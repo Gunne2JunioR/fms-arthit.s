@@ -297,11 +297,10 @@ export function StaffClient({ initialStaff, departments, canManage }: Props) {
               <LiyonSelect
                 value={selectedDept}
                 onChange={(e) => {
-                  const newDept = e.target.value;
-                  setSelectedDept(newDept);
+                  setSelectedDept(e.target.value);
                   startTransition(async () => {
                     const res = await getStaffListAction({
-                      departmentId: newDept || undefined,
+                      departmentId: e.target.value || undefined,
                       status: selectedStatus === "all" ? undefined : selectedStatus,
                       search: searchInput.trim() || undefined,
                     });
@@ -319,19 +318,18 @@ export function StaffClient({ initialStaff, departments, canManage }: Props) {
               <LiyonSelect
                 value={selectedStatus}
                 onChange={(e) => {
-                  const newStatus = e.target.value;
-                  setSelectedStatus(newStatus);
+                  setSelectedStatus(e.target.value);
                   startTransition(async () => {
                     const res = await getStaffListAction({
                       departmentId: selectedDept || undefined,
-                      status: newStatus === "all" ? undefined : newStatus,
+                      status: e.target.value === "all" ? undefined : e.target.value,
                       search: searchInput.trim() || undefined,
                     });
                     if (res.ok) setStaffList(res.data);
                   });
                 }}
               >
-                <option value="all">สถานะทั้งหมด</option>
+                <option value="all">{t("common.all")} ({t("directory.status")})</option>
                 <option value="ACTIVE">{t("directory.status.active")}</option>
                 <option value="ON_LEAVE">{t("directory.status.on_leave")}</option>
                 <option value="RESIGNED">{t("directory.status.resigned")}</option>

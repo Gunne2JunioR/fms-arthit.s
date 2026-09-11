@@ -3,15 +3,14 @@ import { getT, getLocale } from "@/i18n/server";
 import { ArrowLeft, Clock, Award, Download, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { listPrograms } from "@/features/curriculum/server";
-import { prisma } from "@/shared/lib/infra/prisma";
 import type { ProgramDto } from "@/features/curriculum";
 
 export default async function ProgramsPage() {
-  const t = await getT();
-  const locale = await getLocale();
-
-  const tenant = await prisma.tenant.findFirst({ select: { id: true } });
-  const programs: ProgramDto[] = tenant ? await listPrograms(tenant.id) : [];
+  const [t, locale, programs] = await Promise.all([
+    getT(),
+    getLocale(),
+    listPrograms(),
+  ]);
 
   return (
     <div className="container mx-auto px-4 py-12 space-y-10 max-w-5xl">
