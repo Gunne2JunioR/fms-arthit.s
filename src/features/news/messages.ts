@@ -171,13 +171,6 @@ export const MESSAGES: Dictionary = {
   "article.aiTranslate": { th: "แปลภาษาด้วย AI", en: "AI Instant Translate", cn: "AI 智能翻译" },
   "article.original": { th: "ต้นฉบับ", en: "Original", cn: "原文" },
 
-  // Passkeys & Biometric Login (Feature 2)
-  "auth.passkeyButton": { th: "เข้าสู่ระบบด้วย Passkey / สแกนลายนิ้วมือ", en: "Sign in with Passkey / Biometrics", cn: "使用 Passkey / 生物识别登录" },
-  "auth.passkeyOr": { th: "หรือเข้าสู่ระบบด้วยรหัสผ่านแบบเดิม", en: "or sign in with password", cn: "或使用密码登录" },
-  "auth.passkeySupported": { th: "รองรับ Touch ID, Face ID, Windows Hello และ FIDO2 Security Key", en: "Supports Touch ID, Face ID, Windows Hello & FIDO2", cn: "支持 Touch ID、Face ID、Windows Hello 与 FIDO2" },
-  "auth.passkeyPrompt": { th: "กรุณาสแกนลายนิ้วมือหรือใบหน้าผ่านอุปกรณ์ของคุณ", en: "Please verify your fingerprint or face on your device.", cn: "请在您的设备上验证指纹或面容。" },
-  "auth.passkeySuccess": { th: "ยืนยันตัวตนสำเร็จ กำลังเข้าสู่ระบบ...", en: "Biometric authentication verified!", cn: "生物识别验证成功，正在登录..." },
-
   // Dynamic Forms & Approval (Feature 8)
   "doc.formBuilder": { th: "ฟิลด์ข้อมูลกำหนดเอง (Dynamic Fields)", en: "Custom Dynamic Fields", cn: "自定义动态表单字段" },
   "doc.workflowTimeline": { th: "เส้นทางการอนุมัติอิเล็กทรอนิกส์ (E-Approval Workflow)", en: "E-Approval Workflow Timeline", cn: "电子审批流转流程" },
