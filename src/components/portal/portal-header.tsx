@@ -223,7 +223,7 @@ export function PortalHeader({
                 size="sm"
                 className="hidden xs:inline-flex h-8 sm:h-9 px-4 rounded-full bg-[var(--brand)] hover:bg-[var(--brand-deep)] text-[var(--on-brand)] text-xs font-semibold shadow-md shadow-[var(--brand)]/20 transition-transform hover:scale-105"
               >
-                <Link href="/login">
+                <Link href={`/login?callbackUrl=${encodeURIComponent(pathname || "/")}`}>
                   <LogIn className="h-3.5 w-3.5 mr-1.5" />
                   <span>{loginLabel}</span>
                 </Link>
@@ -306,7 +306,7 @@ export function PortalHeader({
                 </>
               ) : (
                 <Button asChild size="sm" className="w-full h-9 rounded-xl bg-[var(--brand)] text-[var(--on-brand)] text-xs gap-2">
-                  <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href={`/login?callbackUrl=${encodeURIComponent(pathname || "/")}`} onClick={() => setMobileMenuOpen(false)}>
                     <LogIn className="h-3.5 w-3.5" />
                     <span>{loginLabel}</span>
                   </Link>

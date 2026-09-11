@@ -8,6 +8,7 @@ import {
   GraduationCap,
   Calendar,
   FileText,
+  Globe,
   type LucideIcon,
 } from "lucide-react";
 import { hasPermission, P } from "@/features/identity";
@@ -31,7 +32,7 @@ export interface NavGroup { label: string; items: NavItem[] }
 export interface NavCrumb { title: string; href: string }
 
 export const sidebarGroups: NavGroup[] = [
-  { label: "nav.group.overview", items: [{ title: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard }] },
+  { label: "nav.group.overview", items: [{ title: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard }, { title: "nav.portal", href: "/", icon: Globe }] },
   {
     label: "faculty.nav.academic",
     items: [

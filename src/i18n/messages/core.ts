@@ -49,6 +49,7 @@ export const MESSAGES: Dictionary = {
   "nav.settings": { th: "ตั้งค่าองค์กร", en: "Organization", cn: "组织设置" },
   "account.profile": { th: "โปรไฟล์", en: "Profile", cn: "个人资料" },
   "account.logout": { th: "ออกจากระบบ", en: "Sign out", cn: "退出登录" },
+  "nav.portal": { th: "หน้าหลักเว็บไซต์", en: "Portal Home", cn: "门户首页" },
   "palette.blue": { th: "น้ำเงิน", en: "Blue", cn: "蓝色" },
   "palette.coral": { th: "ส้ม", en: "Coral", cn: "珊瑚橙" },
   "palette.pink": { th: "ชมพู", en: "Pink", cn: "粉色" },
