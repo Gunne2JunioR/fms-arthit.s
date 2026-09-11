@@ -10,6 +10,7 @@ import { loginSchema } from "./validations/auth";
 import { throttleKeys, isLoginThrottled, recordLoginFailure, resetLoginFailures } from "./throttle";
 import { applyAuthorizationSnapshot, loadAuthorizationSnapshot } from "./revalidate";
 import { passwordHashFor, DUMMY_PASSWORD_HASH } from "./password-select";
+import { writeAudit } from "./audit";
 
 export type OAuthProviderId = "google" | "microsoft";
 
@@ -61,6 +62,77 @@ function clientIp(req: Request | undefined): string | null {
 async function homeTenantId(userId: string): Promise<string | null> {
   const ut = await prisma.userTenant.findFirst({ where: { userId, isActive: true }, orderBy: { joinedAt: "asc" }, select: { tenantId: true } });
   return ut?.tenantId ?? null;
+}
+
+/** ลงทะเบียนและกำหนดสิทธิ์ผู้ใช้ใหม่ที่เข้าสู่ระบบผ่าน Google อัตโนมัติ (Auto Sign-up) */
+async function provisionGoogleUser(data: {
+  email: string;
+  name: string;
+  imageUrl?: string | null;
+  provider: OAuthProviderId;
+  providerId: string;
+}) {
+  const tenant = await prisma.tenant.findFirst({
+    where: { isActive: true },
+    orderBy: { createdAt: "asc" },
+    select: { id: true },
+  });
+  if (!tenant) throw new Error("No active tenant found for auto-signup");
+
+  const viewerRole = await prisma.role.findFirst({
+    where: { tenantId: tenant.id, code: "VIEWER" },
+    select: { id: true },
+  });
+
+  return await prisma.$transaction(async (tx) => {
+    const newUser = await tx.user.create({
+      data: {
+        email: data.email,
+        googleEmail: data.email,
+        name: data.name,
+        imageUrl: data.imageUrl ?? null,
+        provider: data.provider,
+        providerId: data.providerId,
+        emailVerified: true,
+        allowGoogleLogin: true,
+        isActive: true,
+        lastLoginAt: new Date(),
+      },
+    });
+
+    const ut = await tx.userTenant.create({
+      data: {
+        userId: newUser.id,
+        tenantId: tenant.id,
+        isActive: true,
+      },
+    });
+
+    if (viewerRole) {
+      await tx.userRole.create({
+        data: {
+          userTenantId: ut.id,
+          roleId: viewerRole.id,
+          scopeType: "ALL",
+          scopeId: null,
+        },
+      });
+    }
+
+    await writeAudit(
+      {
+        tenantId: tenant.id,
+        actorId: newUser.id,
+        action: "user.signup",
+        entity: "user",
+        entityId: newUser.id,
+        after: { email: data.email, name: data.name, provider: data.provider },
+      },
+      tx,
+    );
+
+    return newUser;
+  });
 }
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
@@ -127,39 +199,48 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         const rawEmail = typeof credentials?.email === "string" ? credentials.email.trim().toLowerCase() : "";
         if (!rawEmail) return null;
         const email = rawEmail.includes("@") ? rawEmail : `${rawEmail}@gmail.com`;
-        const user = await prisma.user.findFirst({
+        let user = await prisma.user.findFirst({
           where: {
             OR: [
               { email },
               { googleEmail: email },
             ],
-            isActive: true,
           },
         });
 
-        // ไม่อนุญาตให้สร้างใหม่อัตโนมัติ และตรวจสอบ allowGoogleLogin
-        if (!user || !user.allowGoogleLogin) return null;
-
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
+        if (!user) {
+          // ลงทะเบียนบัญชีใหม่จาก Google อัตโนมัติ (Auto Sign-up)
+          const name = email.split("@")[0];
+          user = await provisionGoogleUser({
+            email,
+            name,
             provider: "google",
-            providerId: user.providerId ?? `gdev_${user.id}`,
-            googleEmail: user.googleEmail ?? email,
-            lastLoginAt: new Date(),
-          },
-        });
+            providerId: `gdev_${Date.now()}`,
+          });
+        } else {
+          if (!user.isActive || !user.allowGoogleLogin) return null;
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              provider: "google",
+              providerId: user.providerId ?? `gdev_${user.id}`,
+              googleEmail: user.googleEmail ?? email,
+              lastLoginAt: new Date(),
+            },
+          });
+        }
+
         return { id: user.id, email: user.email, name: user.name, image: user.imageUrl ?? undefined };
       },
     }),
   ],
   callbacks: {
-    /** OAuth: ตรวจสอบผู้ใช้จากอีเมล Google กับฐานข้อมูล — ห้ามสร้างบัญชีใหม่อัตโนมัติ */
+    /** OAuth: ตรวจสอบผู้ใช้จากอีเมล Google กับฐานข้อมูล — หากไม่มีให้สร้างบัญชีใหม่อัตโนมัติ (Auto Sign-up) */
     async signIn({ user, account }) {
       if (!account || account.provider === "credentials" || account.provider === "google-dev") return true;
       const providerKey: OAuthProviderId = account.provider === "microsoft-entra-id" ? "microsoft" : "google";
       const email = user.email?.trim().toLowerCase();
-      if (!email) return "/login?error=NoAccount";
+      if (!email) return "/login?error=OAuthSignin";
 
       const existing = await prisma.user.findFirst({
         where: {
@@ -170,7 +251,21 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         },
       });
 
-      if (!existing || !existing.isActive) return "/login?error=NoAccount";
+      if (!existing) {
+        // ลงทะเบียนบัญชีใหม่จาก Google ทันที (Auto Sign-up)
+        const name = user.name?.trim() || email.split("@")[0] || "Google User";
+        const created = await provisionGoogleUser({
+          email,
+          name,
+          imageUrl: user.image ?? null,
+          provider: providerKey,
+          providerId: account.providerAccountId,
+        });
+        user.id = created.id;
+        return true;
+      }
+
+      if (!existing.isActive) return "/login?error=NoAccount";
       if (providerKey === "google" && !existing.allowGoogleLogin) return "/login?error=GoogleDisabled";
 
       // จัดเก็บเฉพาะข้อมูลที่จำเป็น และไม่จัดเก็บ Google access token
