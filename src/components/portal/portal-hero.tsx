@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   Sparkles,
@@ -55,26 +56,76 @@ export function PortalHero({
   chipCloudLabel,
   metrics,
 }: PortalHeroProps) {
+  const sectionRef = useRef<HTMLElement>(null);
+  // Mouse position offsets in percentage from center (-1 to 1)
+  const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    if (!sectionRef.current) return;
+    const rect = sectionRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+    setMouseOffset({ x, y });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setMouseOffset({ x: 0, y: 0 });
+  }, []);
+
+  // Calculate subtle translation pixels for background parallax
+  const bgTranslateX = mouseOffset.x * -25;
+  const bgTranslateY = mouseOffset.y * -20;
+  const lightTranslateX = mouseOffset.x * 30;
+  const lightTranslateY = mouseOffset.y * 25;
+
   return (
-    <section className="relative overflow-hidden pt-8 pb-16 lg:pt-14 lg:pb-24">
-      {/* ══════ Ambient 3D Mesh Lighting (Liyon Theme Colors) ══════ */}
+    <section
+      ref={sectionRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="relative overflow-hidden pt-8 pb-16 lg:pt-14 lg:pb-24 transition-colors"
+    >
+      {/* ══════ Interactive Parallax Background Image ══════ */}
       <div
-        className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[720px] sm:w-[900px] h-[480px] rounded-full opacity-35 blur-3xl"
+        className="pointer-events-none absolute -inset-10 transition-transform duration-500 ease-out will-change-transform"
+        style={{
+          transform: `translate3d(${bgTranslateX}px, ${bgTranslateY}px, 0) scale(1.08)`,
+        }}
+      >
+        {/* Background Image */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/hero/hero-bg.jpg"
+          alt="139th Anniversary MCU Celebration"
+          className="h-full w-full object-cover object-center opacity-30 dark:opacity-20 filter contrast-105"
+        />
+
+        {/* Gradient Mask Overlays to integrate seamlessly with Liyon theme */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/60 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-transparent to-background/90" />
+      </div>
+
+      {/* ══════ Ambient Interactive Mesh Lighting (Liyon Theme Colors) ══════ */}
+      <div
+        className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[720px] sm:w-[900px] h-[480px] rounded-full opacity-35 blur-3xl transition-transform duration-700 ease-out"
         style={{
           background:
             "radial-gradient(ellipse at center, var(--brand) 0%, var(--brand2, var(--brand-light)) 40%, transparent 70%)",
+          transform: `translate3d(calc(-50% + ${lightTranslateX}px), ${lightTranslateY}px, 0)`,
         }}
       />
       <div
-        className="pointer-events-none absolute top-1/3 -right-24 w-80 h-80 rounded-full opacity-25 blur-3xl"
+        className="pointer-events-none absolute top-1/3 -right-24 w-80 h-80 rounded-full opacity-25 blur-3xl transition-transform duration-700 ease-out"
         style={{
           background: "radial-gradient(circle, var(--brand-light) 0%, transparent 70%)",
+          transform: `translate3d(${lightTranslateX * 0.8}px, ${lightTranslateY * 0.8}px, 0)`,
         }}
       />
       <div
-        className="pointer-events-none absolute top-1/2 -left-24 w-80 h-80 rounded-full opacity-20 blur-3xl"
+        className="pointer-events-none absolute top-1/2 -left-24 w-80 h-80 rounded-full opacity-20 blur-3xl transition-transform duration-700 ease-out"
         style={{
           background: "radial-gradient(circle, var(--rose, var(--brand2, #4FD3B4)) 0%, transparent 70%)",
+          transform: `translate3d(${-lightTranslateX * 0.7}px, ${-lightTranslateY * 0.7}px, 0)`,
         }}
       />
 
@@ -154,19 +205,20 @@ export function PortalHero({
             </div>
           </div>
 
-          {/* ══════ Right Column: Resadex-Style 3D Stage ══════ */}
+          {/* ══════ Right Column: Resadex-Style 3D Stage with Mouse Tilt ══════ */}
           <div className="lg:col-span-5 relative flex items-center justify-center pt-6 lg:pt-0">
             <div
               className="relative w-full max-w-[440px] aspect-[4/3.8] [perspective:1000px]"
             >
               {/* Main 3D Tilted Glass Card */}
               <div
-                className="w-full h-full rounded-3xl p-6 relative overflow-hidden transition-all duration-700 ease-out [transform:rotateY(-8deg)_rotateX(6deg)] hover:[transform:rotateY(0deg)_rotateX(0deg)]"
+                className="w-full h-full rounded-3xl p-6 relative overflow-hidden transition-all duration-300 ease-out"
                 style={{
                   background: "var(--glass-strong)",
                   border: "1px solid var(--glass-border)",
                   backdropFilter: "blur(24px) saturate(160%)",
                   boxShadow: "0 28px 60px -20px var(--shadow)",
+                  transform: `rotateY(${-8 + mouseOffset.x * 12}deg) rotateX(${6 - mouseOffset.y * 10}deg) translate3d(${mouseOffset.x * 10}px, ${mouseOffset.y * 8}px, 0)`,
                 }}
               >
                 {/* Internal Card Decor - Top Bar */}
@@ -226,12 +278,13 @@ export function PortalHero({
                 </div>
               </div>
 
-              {/* ════ Floating Satellites (Resadex Animation Style) ════ */}
+              {/* ════ Floating Satellites (Resadex Animation Style with Parallax) ════ */}
               {/* Satellite 1: Top Right Floating Status Pill */}
               <div
-                className="absolute -top-4 -right-4 sm:-right-6 px-4 py-2.5 rounded-2xl bg-[var(--glass-strong)] border border-[var(--glass-border)] backdrop-blur-xl shadow-xl flex items-center gap-3 animate-bounce [animation-duration:4s]"
+                className="absolute -top-4 -right-4 sm:-right-6 px-4 py-2.5 rounded-2xl bg-[var(--glass-strong)] border border-[var(--glass-border)] backdrop-blur-xl shadow-xl flex items-center gap-3 transition-transform duration-500 ease-out"
                 style={{
                   boxShadow: "0 16px 36px -12px rgba(0,0,0,0.18)",
+                  transform: `translate3d(${mouseOffset.x * 20}px, ${mouseOffset.y * 18}px, 0)`,
                 }}
               >
                 <div className="h-8 w-8 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -249,9 +302,10 @@ export function PortalHero({
 
               {/* Satellite 2: Bottom Left Floating Admission Badge */}
               <div
-                className="absolute -bottom-5 -left-4 sm:-left-6 px-4 py-3 rounded-2xl bg-[var(--glass-strong)] border border-[var(--glass-border)] backdrop-blur-xl shadow-xl flex items-center gap-3 animate-bounce [animation-duration:5s] [animation-delay:1s]"
+                className="absolute -bottom-5 -left-4 sm:-left-6 px-4 py-3 rounded-2xl bg-[var(--glass-strong)] border border-[var(--glass-border)] backdrop-blur-xl shadow-xl flex items-center gap-3 transition-transform duration-500 ease-out"
                 style={{
                   boxShadow: "0 16px 36px -12px rgba(0,0,0,0.18)",
+                  transform: `translate3d(${-mouseOffset.x * 18}px, ${-mouseOffset.y * 16}px, 0)`,
                 }}
               >
                 <div className="h-9 w-9 rounded-xl bg-[var(--brand)]/15 text-[var(--brand)] flex items-center justify-center">
