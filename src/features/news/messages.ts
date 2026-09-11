@@ -92,6 +92,11 @@ export const MESSAGES: Dictionary = {
   "portal.footerProg2": { th: "หลักสูตรบริหารธุรกิจบัณฑิต", en: "Bachelor of Business Administration", cn: "工商管理学士学位课程" },
   "portal.footerProg3": { th: "หลักสูตรระดับบัณฑิตศึกษา", en: "Graduate Programs", cn: "研究生学位课程" },
   "portal.footerProg4": { th: "การรับสมัครนักศึกษาใหม่ (TCAS)", en: "New Student Admission (TCAS)", cn: "新生招生录取 (TCAS)" },
+  "portal.footerQuickLinks": { th: "ลิงก์ด่วน", en: "Quick Links", cn: "快捷链接" },
+  "portal.footerHours": { th: "จันทร์ - ศุกร์: 08:30 - 16:30 น.", en: "Mon - Fri: 08:30 AM - 04:30 PM", cn: "周一至周五：08:30 - 16:30" },
+  "portal.footerPrivacy": { th: "นโยบายความเป็นส่วนตัว", en: "Privacy Policy", cn: "隐私政策" },
+  "portal.footerTerms": { th: "ข้อกำหนดและเงื่อนไข", en: "Terms of Service", cn: "使用条款" },
+  "portal.footerRights": { th: "สงวนลิขสิทธิ์ทั้งหมด", en: "All rights reserved", cn: "版权所有" },
 
   // RBAC Registry
   "roles.module.news": { th: "ระบบข่าวสารประชาสัมพันธ์", en: "News & Announcements", cn: "新闻公告系统" },
