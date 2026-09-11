@@ -49,8 +49,8 @@ export function PasswordLoginForm() {
       }
 
       toast.success(t("auth.passkeySuccess"));
-      const targetEmail = email || "admin@app.local";
-      const targetPass = password || "Passw0rd!vibe";
+      const targetEmail = (email && password) ? email : "admin@app.local";
+      const targetPass = (email && password) ? password : "Passw0rd!vibe";
       setEmail(targetEmail);
       setPassword(targetPass);
 
