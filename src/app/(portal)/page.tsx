@@ -3,8 +3,9 @@ import { getT } from "@/i18n/server";
 import { getLocale } from "@/shared/lib/i18n/server";
 import { formatDate } from "@/shared/lib/format";
 import { listPublishedArticles } from "@/features/news/server";
-import { ArrowRight, Calendar, Eye, Pin, Sparkles, BookOpen, Users, Award } from "lucide-react";
+import { ArrowRight, Calendar, Eye, Pin, Users, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PortalHero } from "@/components/portal/portal-hero";
 
 export default async function PortalHomePage() {
   const [t, locale] = await Promise.all([getT(), getLocale()]);
@@ -15,59 +16,31 @@ export default async function PortalHomePage() {
 
   return (
     <div className="space-y-16 pb-20">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-primary/10 via-primary/5 to-background pt-16 pb-20 border-b">
-        <div className="container mx-auto px-4 text-center max-w-4xl space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold tracking-wide">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>{t("portal.facultyTitle")}</span>
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground leading-tight">
-            {t("portal.heroTitle1")} <br className="hidden sm:inline" />
-            <span className="text-primary">{t("portal.heroTitle2")}</span>
-          </h1>
-
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            {t("portal.heroDesc")}
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-            <Button asChild size="lg" className="gap-2 shadow-md">
-              <Link href="/programs">
-                <BookOpen className="h-4 w-4" />
-                <span>{t("portal.explorePrograms")}</span>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="gap-2">
-              <Link href="/news">
-                <span>{t("portal.allNews")}</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-
-          {/* Quick Metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-12 border-t border-border/60 max-w-3xl mx-auto">
-            <div className="space-y-1">
-              <div className="text-2xl sm:text-3xl font-bold text-foreground">4</div>
-              <div className="text-xs text-muted-foreground">{t("portal.metric.bachelor")}</div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-2xl sm:text-3xl font-bold text-foreground">1,200+</div>
-              <div className="text-xs text-muted-foreground">{t("portal.metric.students")}</div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-2xl sm:text-3xl font-bold text-foreground">50+</div>
-              <div className="text-xs text-muted-foreground">{t("portal.metric.faculty")}</div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-2xl sm:text-3xl font-bold text-foreground">95%</div>
-              <div className="text-xs text-muted-foreground">{t("portal.metric.employment")}</div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* 3D Resadex-style Hero Section */}
+      <PortalHero
+        facultyTitle={t("portal.facultyTitle")}
+        heroTitle1={t("portal.heroTitle1")}
+        heroTitle2={t("portal.heroTitle2")}
+        heroDesc={t("portal.heroDesc")}
+        exploreProgramsLabel={t("portal.explorePrograms")}
+        allNewsLabel={t("portal.allNews")}
+        badgeNewLabel={t("portal.heroBadgeNew")}
+        liveStatusLabel={t("portal.heroLiveStatus")}
+        gradSuccessLabel={t("portal.heroGradSuccess")}
+        chipAiLabel={t("portal.heroChipAi")}
+        chipBizLabel={t("portal.heroChipBiz")}
+        chipCloudLabel={t("portal.heroChipCloud")}
+        metrics={{
+          bachelorCount: "4",
+          bachelorLabel: t("portal.metric.bachelor"),
+          studentsCount: "1,200+",
+          studentsLabel: t("portal.metric.students"),
+          facultyCount: "50+",
+          facultyLabel: t("portal.metric.faculty"),
+          employmentRate: "95%",
+          employmentLabel: t("portal.metric.employment"),
+        }}
+      />
 
       {/* Featured / Pinned News Section */}
       {featuredArticles.length > 0 && (
