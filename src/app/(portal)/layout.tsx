@@ -36,6 +36,7 @@ export default async function PortalLayout({
         loginLabel={t("portal.login")}
         isLoggedIn={Boolean(session?.user)}
         logoUrl={tenantSettings?.logoUrl}
+        themeToggleLabel={t("nav.themeToggle")}
       />
 
       {/* Main Content */}
