@@ -4,7 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { LogIn, LayoutDashboard } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
+import { LogIn, LayoutDashboard, User, Settings, LogOut } from "lucide-react";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { Button } from "@/components/ui/button";
 
@@ -13,15 +15,25 @@ interface NavLink {
   label: string;
 }
 
+export interface PortalUser {
+  name: string;
+  email: string;
+  image?: string | null;
+}
+
 interface Props {
   facultyTitle: string;
   facultyTagline: string;
   navLinks: NavLink[];
   adminConsoleLabel: string;
   loginLabel: string;
-  isLoggedIn: boolean;
+  user: PortalUser | null;
   logoUrl?: string | null;
   themeToggleLabel?: string;
+  profileLabel?: string;
+  settingsLabel?: string;
+  logoutLabel?: string;
+  canManageSettings?: boolean;
 }
 
 export function PortalHeader({
@@ -30,13 +42,19 @@ export function PortalHeader({
   navLinks,
   adminConsoleLabel,
   loginLabel,
-  isLoggedIn,
+  user,
   logoUrl,
   themeToggleLabel = "Theme",
+  profileLabel = "Profile",
+  settingsLabel = "Settings",
+  logoutLabel = "Sign out",
+  canManageSettings = false,
 }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+
+  const initials = (user?.name ?? "?").trim().charAt(0).toUpperCase() || "?";
 
   return (
     <header className="adm-head sticky top-0 z-40 !px-4 sm:!px-6">
@@ -106,14 +124,75 @@ export function PortalHeader({
           {/* Language Switcher */}
           <LanguageSwitcher className="lang" />
 
-          {/* Portal / Admin Login Button */}
-          {isLoggedIn ? (
-            <Button asChild size="sm" className="hidden sm:inline-flex gap-2">
-              <Link href="/dashboard">
-                <LayoutDashboard className="h-4 w-4" />
-                <span>{adminConsoleLabel}</span>
-              </Link>
-            </Button>
+          {/* Avatar Menu when signed in, or Login Button when signed out */}
+          {user ? (
+            <div className="acct">
+              <DropdownMenuPrimitive.Root>
+                <DropdownMenuPrimitive.Trigger asChild>
+                  <button type="button" aria-label={user.name}>
+                    <span className="who" aria-hidden="true">
+                      {user.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={user.image} alt="" className="h-full w-full rounded-full object-cover" />
+                      ) : (
+                        initials
+                      )}
+                    </span>
+                    <span className="nm hidden md:inline">{user.name}</span>
+                    <svg className="chev" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                </DropdownMenuPrimitive.Trigger>
+                <DropdownMenuPrimitive.Portal>
+                  <DropdownMenuPrimitive.Content
+                    className="menu-list"
+                    align="end"
+                    sideOffset={8}
+                    style={{ position: "static" }}
+                  >
+                    <DropdownMenuPrimitive.Label asChild>
+                      <div className="px-2.5 py-2">
+                        <p className="text-sm font-medium">{user.name}</p>
+                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                      </div>
+                    </DropdownMenuPrimitive.Label>
+                    <DropdownMenuPrimitive.Separator asChild>
+                      <hr />
+                    </DropdownMenuPrimitive.Separator>
+                    <DropdownMenuPrimitive.Item key="/dashboard" asChild>
+                      <Link href="/dashboard">
+                        <LayoutDashboard className="h-4 w-4" />
+                        {adminConsoleLabel}
+                      </Link>
+                    </DropdownMenuPrimitive.Item>
+                    <DropdownMenuPrimitive.Item key="/me" asChild>
+                      <Link href="/me">
+                        <User className="h-4 w-4" />
+                        {profileLabel}
+                      </Link>
+                    </DropdownMenuPrimitive.Item>
+                    {canManageSettings && (
+                      <DropdownMenuPrimitive.Item key="/settings" asChild>
+                        <Link href="/settings">
+                          <Settings className="h-4 w-4" />
+                          {settingsLabel}
+                        </Link>
+                      </DropdownMenuPrimitive.Item>
+                    )}
+                    <DropdownMenuPrimitive.Separator asChild>
+                      <hr />
+                    </DropdownMenuPrimitive.Separator>
+                    <DropdownMenuPrimitive.Item asChild onSelect={() => signOut({ callbackUrl: "/" })}>
+                      <button type="button" className="danger">
+                        <LogOut className="h-4 w-4 mr-2" />
+                        {logoutLabel}
+                      </button>
+                    </DropdownMenuPrimitive.Item>
+                  </DropdownMenuPrimitive.Content>
+                </DropdownMenuPrimitive.Portal>
+              </DropdownMenuPrimitive.Root>
+            </div>
           ) : (
             <Button asChild variant="default" size="sm" className="hidden sm:inline-flex gap-2">
               <Link href="/login">
@@ -167,13 +246,36 @@ export function PortalHeader({
           </nav>
 
           <div className="pt-3 border-t border-[var(--glass-border)] flex flex-col gap-2">
-            {isLoggedIn ? (
-              <Button asChild size="sm" className="w-full gap-2">
-                <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+            {user ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-[var(--r-md)] text-sm font-medium text-[var(--text)] hover:bg-[var(--glass-hover)]"
+                >
                   <LayoutDashboard className="h-4 w-4" />
                   <span>{adminConsoleLabel}</span>
                 </Link>
-              </Button>
+                <Link
+                  href="/me"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-[var(--r-md)] text-sm font-medium text-[var(--text)] hover:bg-[var(--glass-hover)]"
+                >
+                  <User className="h-4 w-4" />
+                  <span>{profileLabel}</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    signOut({ callbackUrl: "/" });
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 rounded-[var(--r-md)] text-sm font-medium text-[var(--danger-solid)] hover:bg-[var(--glass-hover)] text-left"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>{logoutLabel}</span>
+                </button>
+              </>
             ) : (
               <Button asChild variant="default" size="sm" className="w-full gap-2">
                 <Link href="/login" onClick={() => setMobileMenuOpen(false)}>

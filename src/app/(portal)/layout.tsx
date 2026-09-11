@@ -1,4 +1,4 @@
-import { auth, resolveTenantSettings } from "@/features/identity/server";
+import { auth, resolveTenantSettings, hasPermission, P } from "@/features/identity/server";
 import { getT } from "@/i18n/server";
 import { GraduationCap } from "lucide-react";
 import { PortalHeader } from "@/components/portal/portal-header";
@@ -25,6 +25,18 @@ export default async function PortalLayout({
     { href: "/#contact", label: t("portal.contact") },
   ];
 
+  const canManageSettings = Boolean(
+    session?.user && hasPermission({ roles: session.roles ?? [], permissions: session.permissions ?? [], isSuperAdmin: session.isSuperAdmin ?? false }, P.settingsManage)
+  );
+
+  const portalUser = session?.user
+    ? {
+        name: session.user.name ?? "",
+        email: session.user.email ?? "",
+        image: session.user.image,
+      }
+    : null;
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* Top Navbar with Responsive Mobile Menu */}
@@ -34,9 +46,13 @@ export default async function PortalLayout({
         navLinks={navLinks}
         adminConsoleLabel={t("portal.adminConsole")}
         loginLabel={t("portal.login")}
-        isLoggedIn={Boolean(session?.user)}
+        user={portalUser}
         logoUrl={tenantSettings?.logoUrl}
         themeToggleLabel={t("nav.themeToggle")}
+        profileLabel={t("account.profile")}
+        settingsLabel={t("nav.settings")}
+        logoutLabel={t("account.logout")}
+        canManageSettings={canManageSettings}
       />
 
       {/* Main Content */}
