@@ -6,6 +6,8 @@ import { formatDate } from "@/shared/lib/format";
 import { getArticleBySlug } from "@/features/news/server";
 import { Calendar, Eye, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ArticleToolbar } from "./_components/article-toolbar";
+
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -62,6 +64,14 @@ export default async function NewsDetailPage({ params }: Props) {
           </p>
         )}
       </div>
+
+      {/* Feature 5: AI Multilingual Narration & Translation Toolbar */}
+      <ArticleToolbar
+        initialTitle={article.title}
+        initialExcerpt={article.excerpt}
+        initialContent={article.content}
+        locale={locale as "th" | "en"}
+      />
 
       {/* Cover Image */}
       {article.coverImageUrl && (

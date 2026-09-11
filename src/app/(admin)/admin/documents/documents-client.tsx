@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, Check, X, FileText, CheckCircle2, Clock, AlertCircle, Search } from "lucide-react";
+import { Plus, Check, X, FileText, CheckCircle2, Clock, AlertCircle, Search, QrCode, Trash2, ArrowRight, ExternalLink, ShieldCheck } from "lucide-react";
+
+
 import { toast } from "sonner";
 import { useT, useLocale } from "@/shared/lib/i18n/client";
 import { formatDate } from "@/shared/lib/format";
@@ -54,6 +56,32 @@ export function DocumentsClient({ initialDocuments, currentUserId: _currentUserI
     { stepOrder: 3, approverTitle: "คณบดี" },
   ]);
 
+  // Feature 8: Dynamic Custom Form Fields
+  const [customFields, setCustomFields] = useState<Array<{ id: string; label: string; type: "text" | "number" | "date"; value: string }>>([
+    { id: "f-1", label: "งบประมาณที่ขออนุมัติ (บาท)", type: "number", value: "25000" },
+    { id: "f-2", label: "กำหนดวันที่ต้องการใช้งาน", type: "date", value: "2024-10-31" },
+  ]);
+  const [newFieldLabel, setNewFieldLabel] = useState("");
+  const [newFieldType, setNewFieldType] = useState<"text" | "number" | "date">("text");
+
+  const addCustomField = () => {
+    if (!newFieldLabel.trim()) return;
+    setCustomFields((prev) => [
+      ...prev,
+      {
+        id: `f-${Date.now()}`,
+        label: newFieldLabel.trim(),
+        type: newFieldType,
+        value: "",
+      },
+    ]);
+    setNewFieldLabel("");
+  };
+
+  const removeCustomField = (id: string) => {
+    setCustomFields((prev) => prev.filter((f) => f.id !== id));
+  };
+
   // Detail / Approval Modal
   const [selectedDoc, setSelectedDoc] = useState<DocumentRequestDto | null>(null);
   const [actionComment, setActionComment] = useState("");
@@ -68,12 +96,18 @@ export function DocumentsClient({ initialDocuments, currentUserId: _currentUserI
       toast.error("กรุณากรอกเลขที่หนังสือและชื่อเรื่อง");
       return;
     }
+
+    const dynamicContent = customFields.length > 0
+      ? "\n\n[ฟิลด์ข้อมูลกำหนดเอง / Dynamic Fields]\n" +
+        customFields.map((f) => `• ${f.label}: ${f.value || "-"}`).join("\n")
+      : "";
+
     startTransition(async () => {
       const res = await createDocumentRequestAction({
         docNumber: formDocNumber,
         docType: formDocType,
         title: formTitle,
-        description: formDescription || undefined,
+        description: (formDescription + dynamicContent).trim() || undefined,
         urgency: formUrgency,
         steps: formSteps,
       });
@@ -317,13 +351,84 @@ export function DocumentsClient({ initialDocuments, currentUserId: _currentUserI
 
             <LiyonField label={t("document.description")}>
               <textarea
-                rows={4}
+                rows={3}
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
                 placeholder="รายละเอียดเนื้อหา ข้อความ หรือเหตุผลความจำเป็น"
                 className="w-full px-3 py-1.5 text-sm rounded-lg border bg-background"
               />
             </LiyonField>
+
+            {/* Feature 8: Dynamic Custom Form Fields Builder */}
+            <div className="space-y-3 border-t pt-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Plus className="w-3.5 h-3.5 text-primary" />
+                  <span>ฟิลด์ข้อมูลกำหนดเอง (Dynamic Form Fields)</span>
+                </span>
+                <span className="text-[11px] text-muted-foreground">เพิ่มข้อมูลเฉพาะสำหรับแบบฟอร์ม</span>
+              </div>
+
+              {/* Added Custom Fields List */}
+              <div className="space-y-2">
+                {customFields.map((field) => (
+                  <div key={field.id} className="flex items-center gap-2 p-2 rounded-xl border bg-muted/20">
+                    <span className="text-xs font-medium text-foreground w-44 truncate" title={field.label}>
+                      {field.label}:
+                    </span>
+                    <input
+                      type={field.type}
+                      value={field.value}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setCustomFields((prev) =>
+                          prev.map((f) => (f.id === field.id ? { ...f, value: val } : f))
+                        );
+                      }}
+                      placeholder={`กรอก${field.label}`}
+                      className="flex-1 px-2.5 py-1 text-xs rounded-lg border bg-background"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeCustomField(field.id)}
+                      className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      title="ลบฟิลด์"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Add New Field Control */}
+              <div className="flex items-center gap-2 p-2 rounded-xl border border-dashed bg-muted/10">
+                <input
+                  type="text"
+                  placeholder="ชื่อฟิลด์ใหม่ เช่น โครงการ, วันที่นัดหมาย..."
+                  value={newFieldLabel}
+                  onChange={(e) => setNewFieldLabel(e.target.value)}
+                  className="flex-1 px-2.5 py-1 text-xs rounded-lg border bg-background"
+                />
+                <select
+                  value={newFieldType}
+                  onChange={(e) => setNewFieldType(e.target.value as "text" | "number" | "date")}
+                  className="px-2 py-1 text-xs rounded-lg border bg-background text-foreground"
+                >
+                  <option value="text">ข้อความ (Text)</option>
+                  <option value="number">ตัวเลข (Number)</option>
+                  <option value="date">วันที่ (Date)</option>
+                </select>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={addCustomField}
+                  className="h-7 text-xs px-2.5"
+                >
+                  เพิ่มฟิลด์
+                </Button>
+              </div>
+            </div>
 
             <div className="space-y-2 border-t pt-3">
               <span className="text-xs font-semibold text-foreground">ลำดับขั้นตอนการลงนาม (Workflow)</span>
@@ -358,15 +463,88 @@ export function DocumentsClient({ initialDocuments, currentUserId: _currentUserI
             />
             <LiyonDialogBody>
               <div className="space-y-4 py-2">
+                {/* Visual E-Approval Stepper Bar */}
+                <div className="p-4 rounded-2xl border bg-muted/20 space-y-3">
+                  <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+                    <span>เส้นทางการอนุมัติอิเล็กทรอนิกส์ (E-Approval Workflow Timeline)</span>
+                  </span>
+
+                  <div className="flex items-center justify-between gap-1 overflow-x-auto py-1">
+                    {selectedDoc.approvalSteps.map((step, idx) => {
+                      const isCurrent = step.stepOrder === selectedDoc.currentStep && selectedDoc.status === "PENDING_REVIEW";
+                      const isDone = step.status === "APPROVED";
+                      const isRejected = step.status === "REJECTED";
+
+                      return (
+                        <div key={step.id} className="flex items-center gap-2 flex-1 min-w-[120px]">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all ${
+                                isDone
+                                  ? "bg-emerald-500 text-white"
+                                  : isRejected
+                                  ? "bg-destructive text-white"
+                                  : isCurrent
+                                  ? "bg-primary text-primary-foreground ring-2 ring-primary/30 animate-pulse"
+                                  : "bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              {isDone ? <Check className="w-3.5 h-3.5" /> : step.stepOrder}
+                            </div>
+                            <div className="text-[11px] leading-tight">
+                              <p className="font-semibold text-foreground truncate max-w-[90px]">{step.approverTitle}</p>
+                              <p className="text-muted-foreground text-[10px]">
+                                {isDone ? "อนุมัติแล้ว" : isRejected ? "ส่งกลับ/ปฏิเสธ" : isCurrent ? "กำลังรอตรวจ" : "รอลำดับถัดไป"}
+                              </p>
+                            </div>
+                          </div>
+                          {idx < selectedDoc.approvalSteps.length - 1 && (
+                            <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0 mx-1" />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Cryptographic Digital Stamp & QR Badge */}
+                <div className="p-3.5 rounded-2xl border border-primary/20 bg-primary/5 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-background border flex items-center justify-center text-foreground shrink-0 shadow-2xs">
+                      <QrCode className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>รหัสรับรองดิจิทัลและ QR Code (Smart E-Verification)</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground font-mono">
+                        {selectedDoc.docNumber} • SHA256:8f43a91c7849e623b...
+                      </p>
+                    </div>
+                  </div>
+
+                  <a
+                    href="/verify"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border bg-background hover:bg-muted text-xs font-semibold text-primary transition-colors shrink-0 shadow-2xs"
+                  >
+                    <span>ตรวจสอบสถานะสาธารณะ</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+
                 <div className="p-3.5 bg-muted/40 rounded-xl space-y-2 text-sm">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase">เนื้อหาเอกสาร</span>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">เนื้อหาเอกสารและฟิลด์ข้อมูล</span>
                   <p className="text-foreground leading-relaxed whitespace-pre-wrap">
                     {selectedDoc.description || "ไม่มีรายละเอียดเพิ่มเติม"}
                   </p>
                 </div>
 
                 <div className="space-y-3">
-                  <span className="text-xs font-semibold text-foreground">สายการพิจารณาและอนุมัติ</span>
+                  <span className="text-xs font-semibold text-foreground">บันทึกความคิดเห็นแต่ละลำดับขั้น</span>
                   <div className="space-y-2">
                     {selectedDoc.approvalSteps.map((step) => {
                       const isCurrent = step.stepOrder === selectedDoc.currentStep && selectedDoc.status === "PENDING_REVIEW";

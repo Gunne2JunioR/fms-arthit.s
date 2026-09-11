@@ -66,7 +66,7 @@ export function PortalHero({
   heroPhone = "+66 2 878 787 1234",
   heroAddress = "อาคารคณะการจัดการและเทคโนโลยีสารสนเทศ วิทยาเขตหลัก",
   videoBgUrl,
-  imageBgUrl = "/images/hero/hero-person.jpg",
+  imageBgUrl = "/images/hero/hero-people.png",
   metrics,
 }: PortalHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);

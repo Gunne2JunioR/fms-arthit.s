@@ -63,3 +63,10 @@ export async function actOnDocumentStepAction(input: unknown): Promise<ActionRes
     return updated;
   });
 }
+
+export async function verifyDocumentAction(query: string): Promise<ActionResult<services.VerificationResult | null>> {
+  return runAction(async () => {
+    return services.verifyDocumentRecord(query);
+  });
+}
+

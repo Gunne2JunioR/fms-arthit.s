@@ -107,6 +107,85 @@ export const MESSAGES: Dictionary = {
   "portal.footerTerms": { th: "ข้อกำหนดและเงื่อนไข", en: "Terms of Service", cn: "使用条款" },
   "portal.footerRights": { th: "สงวนลิขสิทธิ์ทั้งหมด", en: "All rights reserved", cn: "版权所有" },
 
+  // Portal Additional Links
+  "portal.calendar": { th: "ปฏิทินการศึกษา", en: "Academic Calendar", cn: "校历与日程" },
+  "portal.verify": { th: "ตรวจสอบเอกสาร", en: "Verify Document", cn: "文件核验" },
+  "portal.advisor": { th: "AI ที่ปรึกษาการเรียน", en: "AI Advisor", cn: "AI 学业顾问" },
+
+  // Academic Calendar (Feature 4)
+  "calendar.title": { th: "ปฏิทินการศึกษาและกำหนดการสำคัญ", en: "Academic Calendar & Key Dates", cn: "校历与重要日程" },
+  "calendar.subtitle": { th: "กำหนดการลงทะเบียน สอบ และกิจกรรมสำคัญประจำปีการศึกษา พ.ศ. 2567 - 2568 (CE 2024 - 2025)", en: "Key dates for admissions, enrollment, examinations, and university events (BE 2567-2568 / CE 2024-2025)", cn: "2567-2568 佛历年度招生、选课、考试及重大活动日程" },
+  "calendar.syncIcs": { th: "ดาวน์โหลดปฏิทิน (.ics)", en: "Download Calendar (.ics)", cn: "下载日历文件 (.ics)" },
+  "calendar.googleSync": { th: "เพิ่มลงใน Google Calendar", en: "Add to Google Calendar", cn: "添加到 Google 日历" },
+  "calendar.filterAll": { th: "ทั้งหมด", en: "All Events", cn: "全部事件" },
+  "calendar.filterAdmission": { th: "การรับสมัคร (TCAS)", en: "Admissions (TCAS)", cn: "招生录取 (TCAS)" },
+  "calendar.filterRegistration": { th: "การลงทะเบียน", en: "Registration", cn: "选课注册" },
+  "calendar.filterExam": { th: "การสอบ", en: "Examinations", cn: "考试安排" },
+  "calendar.filterEvent": { th: "กิจกรรมและวันหยุด", en: "Activities & Holidays", cn: "活动与节假日" },
+  "calendar.beYear": { th: "พ.ศ.", en: "B.E.", cn: "佛历" },
+  "calendar.ceYear": { th: "ค.ศ.", en: "C.E.", cn: "公历" },
+  "calendar.badgeUpcoming": { th: "เร็วๆ นี้", en: "Upcoming", cn: "即将到来" },
+  "calendar.badgeActive": { th: "กำลังดำเนินการ", en: "In Progress", cn: "进行中" },
+  "calendar.badgePassed": { th: "ผ่านไปแล้ว", en: "Completed", cn: "已结束" },
+
+  // Document Verification (Feature 3)
+  "verify.title": { th: "ระบบตรวจสอบความถูกต้องเอกสารและใบรับรอง", en: "Smart Document Verification System", cn: "文件与证书真实性核验系统" },
+  "verify.subtitle": { th: "ตรวจสอบเอกสารสำคัญ ใบแสดงผลการศึกษา (Transcript) และประกาศนียบัตรด้วยลายเซ็นดิจิทัลและ QR Code", en: "Verify official university certificates, transcripts, and documents via cryptographic stamp & QR code.", cn: "通过数字签名及二维码核验官方证明、成绩单及证书真伪。" },
+  "verify.searchPlaceholder": { th: "กรอกเลขที่เอกสาร เช่น ศธ 0514/2567-001 หรือแฮชเอกสาร...", en: "Enter document number e.g. ศธ 0514/2567-001 or hash...", cn: "请输入文件编号或校验哈希..." },
+  "verify.searchBtn": { th: "ตรวจสอบเอกสาร", en: "Verify Now", cn: "立即核验" },
+  "verify.validTitle": { th: "เอกสารนี้ถูกต้องและได้รับการรับรองอย่างเป็นทางการ", en: "Official Verified Document", cn: "该文件经官方有效认证" },
+  "verify.invalidTitle": { th: "ไม่พบข้อมูลเอกสารในระบบ หรือรหัสไม่ถูกต้อง", en: "Document Not Found or Invalid", cn: "未查询到文件记录或校验码无效" },
+  "verify.docNo": { th: "เลขที่เอกสาร", en: "Document No.", cn: "文件编号" },
+  "verify.docTitle": { th: "ชื่อเอกสาร / ประเภท", en: "Document Title / Type", cn: "文件名称 / 类型" },
+  "verify.issueDate": { th: "วันที่ออกเอกสาร", en: "Date Issued", cn: "签发日期" },
+  "verify.signatory": { th: "ผู้มีอำนาจลงนาม", en: "Authorized Signatory", cn: "签发授权人" },
+  "verify.signatureHash": { th: "ลายเซ็นดิจิทัล (SHA-256)", en: "Digital Signature Hash", cn: "数字签名哈希 (SHA-256)" },
+  "verify.verifiedBy": { th: "ออกโดย คณะการจัดการและเทคโนโลยีสารสนเทศ", en: "Issued by Faculty of Management & IT", cn: "管理与信息技术学院签发" },
+  "verify.scanQrHelp": { th: "สามารถใช้กล้องสแกน QR Code บนมุมเอกสารเพื่อตรวจสอบทันที", en: "Scan the QR code on the document for instant validation.", cn: "扫描文件上的二维码可即时核验。" },
+
+  // Academic Advisor (Feature 1)
+  "advisor.buttonLabel": { th: "AI แนะนำหลักสูตรอัจฉริยะ 2026", en: "AI Academic Advisor 2026", cn: "AI 智能选课顾问 2026" },
+  "advisor.title": { th: "AI ที่ปรึกษาการเลือกหลักสูตรและเส้นทางอาชีพ", en: "AI Academic & Career Advisor", cn: "AI 课程规划与生涯规划顾问" },
+  "advisor.subtitle": { th: "วิเคราะห์ความสนใจ เกรดเฉลี่ย และเป้าหมาย เพื่อจับคู่หลักสูตรที่เหมาะสมที่สุดสำหรับคุณ", en: "Matching your passions, GPA, and goals with the ideal academic program and career trajectory.", cn: "根据您的兴趣、绩点及职业目标，为您智能推荐最适合的学位项目。" },
+  "advisor.stepInterests": { th: "1. เลือกความสนใจของคุณ", en: "1. Select Interests", cn: "1. 选择感兴趣的领域" },
+  "advisor.stepGpax": { th: "2. เกรดเฉลี่ยสะสม (GPAX)", en: "2. Cumulative GPA (GPAX)", cn: "2. 平均学分绩点 (GPAX)" },
+  "advisor.stepGoal": { th: "3. เป้าหมายอาชีพในอนาคต", en: "3. Career Target", cn: "3. 未来职业方向" },
+  "advisor.interestAI": { th: "ปัญญาประดิษฐ์และวิทยาศาสตร์ข้อมูล (AI & Data)", en: "AI & Data Science", cn: "人工智能与数据科学" },
+  "advisor.interestSoftware": { th: "การพัฒนาซอฟต์แวร์และคลาวด์ (Software & Cloud)", en: "Software Engineering & Cloud", cn: "软件工程与云计算" },
+  "advisor.interestBiz": { th: "การจัดการนวัตกรรมธุรกิจ (Business Innovation)", en: "Digital Business Innovation", cn: "数字化商业与创新管理" },
+  "advisor.interestMarketing": { th: "การตลาดดิจิทัลและอีคอมเมิร์ซ (Digital Marketing)", en: "Digital Marketing & E-Commerce", cn: "数字营销与跨境电商" },
+  "advisor.analyzeBtn": { th: "วิเคราะห์หลักสูตรที่เหมาะสม", en: "Analyze Best Matches", cn: "开始智能匹配分析" },
+  "advisor.matchScore": { th: "ความเหมาะสม", en: "Match Score", cn: "匹配度" },
+  "advisor.estimatedTuition": { th: "ค่าธรรมเนียมประมาณการ", en: "Estimated Tuition", cn: "预估学费" },
+  "advisor.scholarshipEligible": { th: "มีสิทธิ์ยื่นขอทุนการศึกษาเรียนดี", en: "Eligible for Academic Scholarship", cn: "符合优秀学业奖学金申请资格" },
+  "advisor.chatPlaceholder": { th: "สอบถามเพิ่มเติมกับ AI Advisor...", en: "Ask AI Advisor anything about programs...", cn: "向 AI 顾问咨询更多课程问题..." },
+
+  // News TTS & Translation (Feature 5)
+  "article.ttsListen": { th: "ฟังเสียงบรรยายด้วย AI (TTS)", en: "Listen with AI Narration", cn: "AI 语音播报" },
+  "article.ttsPlay": { th: "เล่นเสียง", en: "Play", cn: "播放" },
+  "article.ttsPause": { th: "พักเสียง", en: "Pause", cn: "暂停" },
+  "article.ttsResume": { th: "เล่นต่อ", en: "Resume", cn: "继续" },
+  "article.ttsSpeed": { th: "ความเร็ว", en: "Speed", cn: "语速" },
+  "article.readTime": { th: "เวลาอ่านประมาณ", en: "Estimated Read Time", cn: "预计阅读时间" },
+  "article.mins": { th: "นาที", en: "mins", cn: "分钟" },
+  "article.aiTranslate": { th: "แปลภาษาด้วย AI", en: "AI Instant Translate", cn: "AI 智能翻译" },
+  "article.original": { th: "ต้นฉบับ", en: "Original", cn: "原文" },
+
+  // Passkeys & Biometric Login (Feature 2)
+  "auth.passkeyButton": { th: "เข้าสู่ระบบด้วย Passkey / สแกนลายนิ้วมือ", en: "Sign in with Passkey / Biometrics", cn: "使用 Passkey / 生物识别登录" },
+  "auth.passkeyOr": { th: "หรือเข้าสู่ระบบด้วยรหัสผ่านแบบเดิม", en: "or sign in with password", cn: "或使用密码登录" },
+  "auth.passkeySupported": { th: "รองรับ Touch ID, Face ID, Windows Hello และ FIDO2 Security Key", en: "Supports Touch ID, Face ID, Windows Hello & FIDO2", cn: "支持 Touch ID、Face ID、Windows Hello 与 FIDO2" },
+  "auth.passkeyPrompt": { th: "กรุณาสแกนลายนิ้วมือหรือใบหน้าผ่านอุปกรณ์ของคุณ", en: "Please verify your fingerprint or face on your device.", cn: "请在您的设备上验证指纹或面容。" },
+  "auth.passkeySuccess": { th: "ยืนยันตัวตนสำเร็จ กำลังเข้าสู่ระบบ...", en: "Biometric authentication verified!", cn: "生物识别验证成功，正在登录..." },
+
+  // Dynamic Forms & Approval (Feature 8)
+  "doc.formBuilder": { th: "ฟิลด์ข้อมูลกำหนดเอง (Dynamic Fields)", en: "Custom Dynamic Fields", cn: "自定义动态表单字段" },
+  "doc.workflowTimeline": { th: "เส้นทางการอนุมัติอิเล็กทรอนิกส์ (E-Approval Workflow)", en: "E-Approval Workflow Timeline", cn: "电子审批流转流程" },
+  "doc.stepAdvisor": { th: "ขั้นตอนที่ 1: อาจารย์ที่ปรึกษา", en: "Step 1: Academic Advisor", cn: "步骤 1: 学业导师审核" },
+  "doc.stepHead": { th: "ขั้นตอนที่ 2: หัวหน้าสาขาวิชา", en: "Step 2: Department Head", cn: "步骤 2: 系主任审核" },
+  "doc.stepDean": { th: "ขั้นตอนที่ 3: คณบดี / รองคณบดี", en: "Step 3: Dean / Associate Dean", cn: "步骤 3: 院长 / 副院长签批" },
+  "doc.qrVerificationBadge": { th: "รหัสรับรองดิจิทัล QR & Hash", en: "Digital Stamp QR & Hash", cn: "数字核验印章与哈希" },
+
   // RBAC Registry
   "roles.module.news": { th: "ระบบข่าวสารประชาสัมพันธ์", en: "News & Announcements", cn: "新闻公告系统" },
   "perm.news:read": { th: "เข้าถึงและดูรายการข่าวสารในระบบหลังบ้าน", en: "View admin news list", cn: "查看后台新闻列表" },
@@ -115,3 +194,4 @@ export const MESSAGES: Dictionary = {
   "perm.news:publish": { th: "อนุมัติ เผยแพร่ หรือถอดถอนข่าวสาร", en: "Publish or unpublish news", cn: "发布或下架新闻" },
   "perm.news:delete": { th: "ลบข่าวสารประชาสัมพันธ์", en: "Delete news articles", cn: "删除新闻文章" },
 };
+

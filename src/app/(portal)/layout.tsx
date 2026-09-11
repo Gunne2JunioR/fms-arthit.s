@@ -21,6 +21,8 @@ export default async function PortalLayout({
     { href: "/", label: t("portal.home") },
     { href: "/news", label: t("portal.news") },
     { href: "/programs", label: t("portal.programs") },
+    { href: "/calendar", label: t("portal.calendar") },
+    { href: "/verify", label: t("portal.verify") },
     { href: "/personnel", label: t("portal.personnel") },
     { href: "/#contact", label: t("portal.contact") },
   ];
@@ -29,6 +31,8 @@ export default async function PortalLayout({
     { href: "/", label: t("portal.home") },
     { href: "/news", label: t("portal.news") },
     { href: "/programs", label: t("portal.programs") },
+    { href: "/calendar", label: t("portal.calendar") },
+    { href: "/verify", label: t("portal.verify") },
     { href: "/personnel", label: t("portal.personnel") },
   ];
 

@@ -4,6 +4,7 @@ import { ArrowLeft, Clock, Award, Download, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { listPrograms } from "@/features/curriculum/server";
 import type { ProgramDto } from "@/features/curriculum";
+import { AcademicAdvisorDialog } from "./_components/academic-advisor-dialog";
 
 export default async function ProgramsPage() {
   const [t, locale, programs] = await Promise.all([
@@ -28,6 +29,9 @@ export default async function ProgramsPage() {
           {t("portal.curriculumSubtitle")}
         </p>
       </div>
+
+      {/* Feature 1: Agentic AI Academic & Admission Advisor */}
+      <AcademicAdvisorDialog programs={programs} locale={locale} />
 
       <div className="grid grid-cols-1 gap-6">
         {programs.map((p: ProgramDto) => {
