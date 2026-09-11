@@ -297,10 +297,11 @@ export function StaffClient({ initialStaff, departments, canManage }: Props) {
               <LiyonSelect
                 value={selectedDept}
                 onChange={(e) => {
-                  setSelectedDept(e.target.value);
+                  const newDept = e.target.value;
+                  setSelectedDept(newDept);
                   startTransition(async () => {
                     const res = await getStaffListAction({
-                      departmentId: e.target.value || undefined,
+                      departmentId: newDept || undefined,
                       status: selectedStatus === "all" ? undefined : selectedStatus,
                       search: searchInput.trim() || undefined,
                     });
@@ -314,6 +315,26 @@ export function StaffClient({ initialStaff, departments, canManage }: Props) {
                     {locale === "en" ? d.nameEn : d.nameTh}
                   </option>
                 ))}
+              </LiyonSelect>
+              <LiyonSelect
+                value={selectedStatus}
+                onChange={(e) => {
+                  const newStatus = e.target.value;
+                  setSelectedStatus(newStatus);
+                  startTransition(async () => {
+                    const res = await getStaffListAction({
+                      departmentId: selectedDept || undefined,
+                      status: newStatus === "all" ? undefined : newStatus,
+                      search: searchInput.trim() || undefined,
+                    });
+                    if (res.ok) setStaffList(res.data);
+                  });
+                }}
+              >
+                <option value="all">สถานะทั้งหมด</option>
+                <option value="ACTIVE">{t("directory.status.active")}</option>
+                <option value="ON_LEAVE">{t("directory.status.on_leave")}</option>
+                <option value="RESIGNED">{t("directory.status.resigned")}</option>
               </LiyonSelect>
             </div>
           }
