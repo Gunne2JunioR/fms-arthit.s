@@ -89,6 +89,20 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       return true;
     },
 
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return url;
+      try {
+        const parsed = new URL(url);
+        if (parsed.hostname === "0.0.0.0" || parsed.hostname === "127.0.0.1" || parsed.hostname === "localhost") {
+          return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+        }
+        if (parsed.origin === baseUrl) return url;
+        return url;
+      } catch {
+        return "/";
+      }
+    },
+
     async jwt({ token, user, trigger, session }) {
       if (user?.id) {
         token.userId = user.id;

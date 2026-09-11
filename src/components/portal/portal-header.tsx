@@ -207,7 +207,10 @@ export function PortalHeader({
                       <DropdownMenuPrimitive.Separator asChild>
                         <hr className="my-1 border-[var(--glass-border)]" />
                       </DropdownMenuPrimitive.Separator>
-                      <DropdownMenuPrimitive.Item asChild onSelect={() => signOut({ callbackUrl: "/" })}>
+                      <DropdownMenuPrimitive.Item asChild onSelect={async () => {
+                        await signOut({ redirect: false });
+                        window.location.href = "/";
+                      }}>
                         <button type="button" className="danger rounded-xl flex items-center gap-2 text-xs w-full text-left">
                           <LogOut className="h-3.5 w-3.5 mr-1" />
                           {logoutLabel}
@@ -294,9 +297,10 @@ export function PortalHeader({
                   </Link>
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       setMobileMenuOpen(false);
-                      signOut({ callbackUrl: "/" });
+                      await signOut({ redirect: false });
+                      window.location.href = "/";
                     }}
                     className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium text-[var(--danger-solid)] hover:bg-[var(--glass-hover)] text-left"
                   >

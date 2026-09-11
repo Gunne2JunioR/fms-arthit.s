@@ -61,7 +61,18 @@ export function AdminShellClient({ children, brandName, brandTagline, brandLogoU
       roleLabel={roles[0] ? localizedName(roles[0], locale) : null}
       languageSwitcher={<LanguageSwitcher className="lang" />}
       notifications={null}
-      account={user ? { name: user.name ?? "", email: user.email ?? "", imageUrl: user.image, initials, links, onSignOut: () => signOut({ callbackUrl: "/login" }), signOutLabel: t("account.logout") } : null}
+      account={user ? {
+        name: user.name ?? "",
+        email: user.email ?? "",
+        imageUrl: user.image,
+        initials,
+        links,
+        onSignOut: async () => {
+          await signOut({ redirect: false });
+          window.location.href = "/login";
+        },
+        signOutLabel: t("account.logout"),
+      } : null}
       accountLoading={!user}
       themeToggleLabel={t("nav.themeToggle")}
       collapsed={collapsed} onToggleCollapsed={toggleCollapsed} collapseLabel={t("nav.collapse")} expandLabel={t("nav.expand")}
