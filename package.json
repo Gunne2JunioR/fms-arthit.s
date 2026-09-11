@@ -26,10 +26,8 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@next/swc-darwin-arm64": "16.3.4",
     "@prisma/adapter-pg": "6.19.3",
     "@prisma/client": "6.19.3",
-    "@rolldown/binding-darwin-arm64": "1.2.8",
     "bcryptjs": "3.0.3",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
@@ -71,5 +69,9 @@
     "tsx": "4.21.0",
     "typescript": "5.9.3",
     "vitest": "4.1.0"
+  },
+  "optionalDependencies": {
+    "@next/swc-darwin-arm64": "16.3.4",
+    "@rolldown/binding-darwin-arm64": "1.2.8"
   }
 }
