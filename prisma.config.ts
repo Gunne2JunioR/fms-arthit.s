@@ -1,4 +1,9 @@
-import "dotenv/config";
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require("dotenv/config");
+} catch {
+  // Environment variables are provided by system/container runtime
+}
 import { defineConfig, env } from "prisma/config";
 
 export default defineConfig({

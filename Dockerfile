@@ -27,6 +27,9 @@ ENV NODE_ENV=production
 
 RUN npx prisma generate
 
+# Bundle seed script into self-contained JS for production entrypoint
+RUN npx esbuild prisma/seed.ts --bundle --platform=node --format=cjs --outfile=prisma/seed.js
+
 # Build Next.js application (standalone output)
 RUN npm run build
 
@@ -39,6 +42,10 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3010
 ENV HOSTNAME="0.0.0.0"
+ENV NODE_PATH="/usr/local/lib/node_modules"
+
+# Install prisma CLI globally for database migrations
+RUN npm install -g prisma@6.19.3
 
 # Create unprivileged user for security
 RUN groupadd --system --gid 1001 nodejs && \
@@ -54,11 +61,8 @@ RUN mkdir .next && chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy prisma schema and runtime dependencies for database migration
+# Copy prisma schema, migrations, and bundled seed script
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy entrypoint script
 COPY docker-entrypoint.sh ./
