@@ -208,12 +208,12 @@ export function AdminShell({
             <DropdownMenuPrimitive.Root>
               <DropdownMenuPrimitive.Trigger asChild>
                 <button type="button">
-                  <span className="who" aria-hidden="true">
+                  <span className="who overflow-hidden rounded-full shrink-0" aria-hidden="true">
                     {account.imageUrl ? (
                       // รูปโปรไฟล์มาจาก OAuth provider (โฮสต์ภายนอกที่ไม่รู้ล่วงหน้า) next/image ต้อง
                       // ประกาศโดเมนใน next.config ก่อน จึงใช้ <img> ตรง ๆ กับรูปขนาด 36px รูปเดียวต่อหน้า
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={account.imageUrl} alt="" className="h-full w-full rounded-full object-cover" />
+                      <img src={account.imageUrl} alt="" className="h-full w-full rounded-full object-cover block" />
                     ) : (
                       account.initials
                     )}

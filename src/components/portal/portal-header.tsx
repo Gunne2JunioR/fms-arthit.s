@@ -152,10 +152,10 @@ export function PortalHeader({
                       aria-label={user.name}
                       className="inline-flex items-center gap-2 pl-1.5 pr-2 sm:pr-3 py-1 rounded-full bg-[var(--panel)] hover:bg-[var(--glass-hover)] border border-[var(--glass-border)] transition-all group"
                     >
-                      <span className="who !w-7 !h-7 !text-xs ring-1 ring-white/20" aria-hidden="true">
+                      <span className="who !w-7 !h-7 !text-xs ring-1 ring-white/20 overflow-hidden rounded-full shrink-0" aria-hidden="true">
                         {user.image ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={user.image} alt="" className="h-full w-full rounded-full object-cover" />
+                          <img src={user.image} alt="" className="h-full w-full rounded-full object-cover block" />
                         ) : (
                           initials
                         )}
