@@ -494,16 +494,10 @@ export async function deleteProgram(tenantId: string, id: string): Promise<{ pro
   });
   if (!p) throw errors.not_found("program_not_found");
 
-  // If program is active/open or has relations, soft-delete to ARCHIVED
-  const updated = await prisma.program.update({
+  await prisma.program.delete({
     where: { id, tenantId },
-    data: { status: "ARCHIVED" },
-    include: {
-      faculty: { select: { id: true, code: true, nameTh: true, nameEn: true } },
-      department: { select: { id: true, code: true, nameTh: true, nameEn: true } },
-    },
   });
-  return { program: mapProgram(updated), archived: true };
+  return { program: mapProgram(p), archived: false };
 }
 
 // ── OVERVIEW STATS ────────────────────────────────────────────────────────

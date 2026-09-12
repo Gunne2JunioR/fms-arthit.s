@@ -252,15 +252,13 @@ export function ProgramsClient({
 
   const handleDelete = () => {
     if (!deleteConfirmItem) return;
+    const targetId = deleteConfirmItem.id;
     startTransition(async () => {
-      const res = await deleteProgramAction(deleteConfirmItem.id);
+      const res = await deleteProgramAction(targetId);
       if (res.ok) {
-        if (res.data.archived) {
-          toast.success(t("curriculum.archivedSuccess"));
-        } else {
-          toast.success(t("curriculum.deleteSuccess"));
-        }
+        toast.success(t("curriculum.deleteSuccess"));
         setDeleteConfirmItem(null);
+        setPrograms((prev) => prev.filter((p) => p.id !== targetId));
         await refreshList();
       } else {
         toast.error(res.error.message || t("common.error"));
@@ -960,16 +958,35 @@ export function ProgramsClient({
           )}
         </LiyonDialogBody>
 
-        <LiyonDialogFooter>
-          <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-            {t("curriculum.cancel")}
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isPending || !formCode || !formNameTh || !formNameEn || !formFacultyId}
-          >
-            {isPending ? t("common.saving") : t("curriculum.save")}
-          </Button>
+        <LiyonDialogFooter className="flex items-center justify-between w-full">
+          <div>
+            {editingProgram && canManage && (
+              <Button
+                variant="destructive"
+                type="button"
+                onClick={() => {
+                  const toDelete = editingProgram;
+                  setIsDialogOpen(false);
+                  setDeleteConfirmItem(toDelete);
+                }}
+                disabled={isPending}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {t("curriculum.delete")}
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              {t("curriculum.cancel")}
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={isPending || !formCode || !formNameTh || !formNameEn || !formFacultyId}
+            >
+              {isPending ? t("common.saving") : t("curriculum.save")}
+            </Button>
+          </div>
         </LiyonDialogFooter>
       </LiyonDialog>
 
@@ -979,11 +996,22 @@ export function ProgramsClient({
           title={<span className="text-destructive">{t("curriculum.delete")}</span>}
         />
         <LiyonDialogBody>
-          <p className="text-sm text-muted-foreground">{t("curriculum.archiveConfirm")}</p>
+          <p className="text-sm text-muted-foreground">{t("curriculum.deleteConfirm")}</p>
           {deleteConfirmItem && (
-            <p className="mt-2 text-sm font-semibold text-foreground">
-              {deleteConfirmItem.code} - {deleteConfirmItem.nameTh}
-            </p>
+            <div className="mt-3 p-3 bg-muted/50 rounded-md border text-sm space-y-1">
+              <p className="font-semibold text-foreground">
+                <span className="font-mono text-primary mr-1.5">[{deleteConfirmItem.code}]</span>
+                {locale === "en" ? deleteConfirmItem.nameEn : deleteConfirmItem.nameTh}
+              </p>
+              {(deleteConfirmItem.facultyNameTh || deleteConfirmItem.facultyNameEn) && (
+                <p className="text-xs text-muted-foreground">
+                  {locale === "en" ? deleteConfirmItem.facultyNameEn : deleteConfirmItem.facultyNameTh}
+                  {deleteConfirmItem.departmentNameTh || deleteConfirmItem.departmentNameEn
+                    ? ` • ${locale === "en" ? deleteConfirmItem.departmentNameEn : deleteConfirmItem.departmentNameTh}`
+                    : ""}
+                </p>
+              )}
+            </div>
           )}
         </LiyonDialogBody>
         <LiyonDialogFooter>

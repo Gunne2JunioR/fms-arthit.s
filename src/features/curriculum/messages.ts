@@ -84,7 +84,7 @@ export const MESSAGES: Dictionary = {
   "curriculum.createSuccess": { th: "สร้างข้อมูลหลักสูตรเรียบร้อยแล้ว", en: "Program created successfully", cn: "课程创建成功" },
   "curriculum.updateSuccess": { th: "บันทึกการแก้ไขหลักสูตรเรียบร้อยแล้ว", en: "Program updated successfully", cn: "课程更新成功" },
   "curriculum.deleteSuccess": { th: "ลบหลักสูตรเรียบร้อยแล้ว", en: "Program deleted successfully", cn: "课程删除成功" },
-  "curriculum.deleteConfirm": { th: "คุณต้องการลบหลักสูตรนี้ใช่หรือไม่?", en: "Are you sure you want to delete this program?", cn: "确定要删除此课程吗？" },
+  "curriculum.deleteConfirm": { th: "คุณต้องการลบหลักสูตรนี้ใช่หรือไม่? การดำเนินการนี้จะลบข้อมูลหลักสูตรออกจากระบบอย่างถาวร", en: "Are you sure you want to delete this program? This action will permanently remove it from the system.", cn: "确定要删除此课程吗？此操作将从系统中永久删除该课程。" },
   "curriculum.save": { th: "บันทึก", en: "Save", cn: "保存" },
   "curriculum.cancel": { th: "ยกเลิก", en: "Cancel", cn: "取消" },
 
