@@ -4,4 +4,7 @@ export {
   createStaffAction,
   updateStaffAction,
   deleteStaffAction,
+  createDepartmentAction,
+  updateDepartmentAction,
+  deleteDepartmentAction,
 } from "./_internal/actions";

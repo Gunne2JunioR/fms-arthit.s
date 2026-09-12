@@ -7,13 +7,21 @@ import { getLocale } from "@/shared/lib/i18n/server";
 import { zodErrorMap } from "@/shared/lib/i18n/zod-locale";
 import { requirePermission } from "@/features/identity/server";
 import { DIRECTORY_P } from "../permissions";
-import { createStaffSchema, updateStaffSchema } from "./validations";
+import {
+  createStaffSchema,
+  updateStaffSchema,
+  createDepartmentSchema,
+  updateDepartmentSchema,
+} from "./validations";
 import {
   listStaffProfiles,
   listDepartments,
   createStaffProfile,
   updateStaffProfile,
   deleteStaffProfile,
+  createDepartment,
+  updateDepartment,
+  deleteDepartment,
   type StaffProfileDto,
   type DepartmentDto,
 } from "./services";
@@ -71,6 +79,49 @@ export async function deleteStaffAction(id: string): Promise<ActionResult<void>>
     const ip = await getClientIp();
     await deleteStaffProfile(ctx.tenantId, ctx.userId, id, ip);
     revalidatePath("/admin/staff");
+    revalidatePath("/personnel");
+  });
+}
+
+export async function createDepartmentAction(input: unknown): Promise<ActionResult<DepartmentDto>> {
+  return runAction(async () => {
+    const ctx = await requirePermission(DIRECTORY_P.departmentManage);
+    const parsed = createDepartmentSchema.parse(input, { error: zodErrorMap(await getLocale()) });
+    const ip = await getClientIp();
+    const result = await createDepartment(ctx.tenantId, ctx.userId, parsed, ip);
+    revalidatePath("/admin/departments");
+    revalidatePath("/admin/programs");
+    revalidatePath("/admin/staff");
+    revalidatePath("/programs");
+    revalidatePath("/personnel");
+    return result;
+  });
+}
+
+export async function updateDepartmentAction(input: unknown): Promise<ActionResult<DepartmentDto>> {
+  return runAction(async () => {
+    const ctx = await requirePermission(DIRECTORY_P.departmentManage);
+    const parsed = updateDepartmentSchema.parse(input, { error: zodErrorMap(await getLocale()) });
+    const ip = await getClientIp();
+    const result = await updateDepartment(ctx.tenantId, ctx.userId, parsed, ip);
+    revalidatePath("/admin/departments");
+    revalidatePath("/admin/programs");
+    revalidatePath("/admin/staff");
+    revalidatePath("/programs");
+    revalidatePath("/personnel");
+    return result;
+  });
+}
+
+export async function deleteDepartmentAction(id: string): Promise<ActionResult<void>> {
+  return runAction(async () => {
+    const ctx = await requirePermission(DIRECTORY_P.departmentManage);
+    const ip = await getClientIp();
+    await deleteDepartment(ctx.tenantId, ctx.userId, id, ip);
+    revalidatePath("/admin/departments");
+    revalidatePath("/admin/programs");
+    revalidatePath("/admin/staff");
+    revalidatePath("/programs");
     revalidatePath("/personnel");
   });
 }

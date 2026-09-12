@@ -24,5 +24,23 @@ export const updateStaffSchema = createStaffSchema.extend({
   id: z.string().uuid(),
 });
 
+export const createDepartmentSchema = z.object({
+  code: z.string().trim().min(1).max(50),
+  nameTh: z.string().trim().min(1).max(255),
+  nameEn: z.string().trim().min(1).max(255),
+  description: z.string().trim().optional().nullable(),
+});
+
+export const updateDepartmentSchema = createDepartmentSchema.extend({
+  id: z.string().uuid(),
+});
+
+export const deleteDepartmentSchema = z.object({
+  id: z.string().uuid(),
+});
+
 export type CreateStaffInput = z.infer<typeof createStaffSchema>;
 export type UpdateStaffInput = z.infer<typeof updateStaffSchema>;
+export type CreateDepartmentInput = z.infer<typeof createDepartmentSchema>;
+export type UpdateDepartmentInput = z.infer<typeof updateDepartmentSchema>;
+export type DeleteDepartmentInput = z.infer<typeof deleteDepartmentSchema>;

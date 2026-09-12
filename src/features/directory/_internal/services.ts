@@ -1,6 +1,12 @@
 import { prisma } from "@/shared/lib/infra/prisma";
 import { writeAudit } from "@/features/identity/server";
-import type { CreateStaffInput, UpdateStaffInput } from "./validations";
+import { errors } from "@/shared/lib/errors";
+import type {
+  CreateStaffInput,
+  UpdateStaffInput,
+  CreateDepartmentInput,
+  UpdateDepartmentInput,
+} from "./validations";
 
 export interface DepartmentDto {
   id: string;
@@ -8,6 +14,17 @@ export interface DepartmentDto {
   code: string;
   nameTh: string;
   nameEn: string;
+  description?: string | null;
+  programsCount?: number;
+  staffCount?: number;
+  programs?: {
+    id: string;
+    code: string;
+    nameTh: string;
+    nameEn: string;
+    degreeLevel: string;
+    status: string;
+  }[];
 }
 
 export interface StaffProfileDto {
@@ -45,6 +62,13 @@ export async function listDepartments(tenantId?: string): Promise<DepartmentDto[
   const depts = await prisma.department.findMany({
     where,
     orderBy: { code: "asc" },
+    include: {
+      _count: { select: { programs: true, staffProfiles: true } },
+      programs: {
+        select: { id: true, code: true, nameTh: true, nameEn: true, degreeLevel: true, status: true },
+        orderBy: { code: "asc" },
+      },
+    },
   });
   return depts.map((d) => ({
     id: d.id,
@@ -52,6 +76,10 @@ export async function listDepartments(tenantId?: string): Promise<DepartmentDto[
     code: d.code,
     nameTh: d.nameTh,
     nameEn: d.nameEn,
+    description: d.description,
+    programsCount: d._count.programs,
+    staffCount: d._count.staffProfiles,
+    programs: d.programs,
   }));
 }
 
@@ -278,6 +306,167 @@ export async function deleteStaffProfile(
     entity: "staff_profile",
     entityId: id,
     before: { name: `${current.firstNameTh} ${current.lastNameTh}`, email: current.email },
+    ip,
+  });
+}
+
+export async function getDepartmentById(tenantId: string, id: string): Promise<DepartmentDto | null> {
+  const d = await prisma.department.findUnique({
+    where: { id, tenantId },
+    include: {
+      _count: { select: { programs: true, staffProfiles: true } },
+      programs: {
+        select: { id: true, code: true, nameTh: true, nameEn: true, degreeLevel: true, status: true },
+        orderBy: { code: "asc" },
+      },
+    },
+  });
+  if (!d) return null;
+  return {
+    id: d.id,
+    tenantId: d.tenantId,
+    code: d.code,
+    nameTh: d.nameTh,
+    nameEn: d.nameEn,
+    description: d.description,
+    programsCount: d._count.programs,
+    staffCount: d._count.staffProfiles,
+    programs: d.programs,
+  };
+}
+
+export async function createDepartment(
+  tenantId: string,
+  actorId: string,
+  input: CreateDepartmentInput,
+  ip?: string | null,
+): Promise<DepartmentDto> {
+  const code = input.code.trim().toUpperCase();
+  const existing = await prisma.department.findFirst({
+    where: { tenantId, code },
+  });
+  if (existing) throw errors.conflict("department_code_taken");
+
+  const created = await prisma.department.create({
+    data: {
+      tenantId,
+      code,
+      nameTh: input.nameTh.trim(),
+      nameEn: input.nameEn.trim(),
+      description: input.description?.trim() || null,
+    },
+  });
+
+  await writeAudit({
+    tenantId,
+    actorId,
+    action: "department.create",
+    entity: "department",
+    entityId: created.id,
+    after: { code: created.code, nameTh: created.nameTh, nameEn: created.nameEn },
+    ip,
+  });
+
+  return {
+    id: created.id,
+    tenantId: created.tenantId,
+    code: created.code,
+    nameTh: created.nameTh,
+    nameEn: created.nameEn,
+    description: created.description,
+    programsCount: 0,
+    staffCount: 0,
+    programs: [],
+  };
+}
+
+export async function updateDepartment(
+  tenantId: string,
+  actorId: string,
+  input: UpdateDepartmentInput,
+  ip?: string | null,
+): Promise<DepartmentDto> {
+  const code = input.code.trim().toUpperCase();
+  const current = await prisma.department.findUniqueOrThrow({
+    where: { id: input.id, tenantId },
+  });
+
+  if (code !== current.code) {
+    const existing = await prisma.department.findFirst({
+      where: { tenantId, code, id: { not: input.id } },
+    });
+    if (existing) throw errors.conflict("department_code_taken");
+  }
+
+  const updated = await prisma.department.update({
+    where: { id: input.id, tenantId },
+    data: {
+      code,
+      nameTh: input.nameTh.trim(),
+      nameEn: input.nameEn.trim(),
+      description: input.description !== undefined ? (input.description?.trim() || null) : current.description,
+    },
+    include: {
+      _count: { select: { programs: true, staffProfiles: true } },
+      programs: {
+        select: { id: true, code: true, nameTh: true, nameEn: true, degreeLevel: true, status: true },
+        orderBy: { code: "asc" },
+      },
+    },
+  });
+
+  await writeAudit({
+    tenantId,
+    actorId,
+    action: "department.update",
+    entity: "department",
+    entityId: updated.id,
+    before: { code: current.code, nameTh: current.nameTh, nameEn: current.nameEn },
+    after: { code: updated.code, nameTh: updated.nameTh, nameEn: updated.nameEn },
+    ip,
+  });
+
+  return {
+    id: updated.id,
+    tenantId: updated.tenantId,
+    code: updated.code,
+    nameTh: updated.nameTh,
+    nameEn: updated.nameEn,
+    description: updated.description,
+    programsCount: updated._count.programs,
+    staffCount: updated._count.staffProfiles,
+    programs: updated.programs,
+  };
+}
+
+export async function deleteDepartment(
+  tenantId: string,
+  actorId: string,
+  id: string,
+  ip?: string | null,
+): Promise<void> {
+  const current = await prisma.department.findUniqueOrThrow({
+    where: { id, tenantId },
+    include: {
+      _count: { select: { programs: true, staffProfiles: true } },
+    },
+  });
+
+  if (current._count.programs > 0 || current._count.staffProfiles > 0) {
+    throw errors.conflict("department_has_relations");
+  }
+
+  await prisma.department.delete({
+    where: { id, tenantId },
+  });
+
+  await writeAudit({
+    tenantId,
+    actorId,
+    action: "department.delete",
+    entity: "department",
+    entityId: id,
+    before: { code: current.code, nameTh: current.nameTh },
     ip,
   });
 }

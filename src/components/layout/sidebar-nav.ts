@@ -37,6 +37,7 @@ export const sidebarGroups: NavGroup[] = [
     label: "faculty.nav.academic",
     items: [
       { title: "news.title", href: "/admin/news", icon: Newspaper, permission: NEWS_P.newsRead },
+      { title: "department.title", href: "/admin/departments", icon: Layers, permission: DIRECTORY_P.departmentRead },
       { title: "directory.title", href: "/admin/staff", icon: UserSquare2, permission: DIRECTORY_P.staffRead },
       { title: "curriculum.title", href: "/admin/programs", icon: GraduationCap, permission: CURRICULUM_P.curriculumRead },
     ],

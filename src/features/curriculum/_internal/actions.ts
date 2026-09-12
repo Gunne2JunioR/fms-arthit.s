@@ -17,10 +17,10 @@ async function getClientIp(): Promise<string | null> {
   return h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
 }
 
-export async function getProgramsAction(level?: string): Promise<ActionResult<ProgramDto[]>> {
+export async function getProgramsAction(level?: string, departmentId?: string): Promise<ActionResult<ProgramDto[]>> {
   return runAction(async () => {
     const ctx = await requirePermission(CURRICULUM_P.curriculumRead);
-    return services.listPrograms(ctx.tenantId, level);
+    return services.listPrograms(ctx.tenantId, level, departmentId);
   });
 }
 

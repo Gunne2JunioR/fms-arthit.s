@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const createProgramSchema = z.object({
+  departmentId: z.string().uuid().optional().nullable().or(z.literal("").transform(() => null)),
   code: z.string().min(1).max(50),
   nameTh: z.string().min(1).max(255),
   nameEn: z.string().min(1).max(255),

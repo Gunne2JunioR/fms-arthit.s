@@ -19,6 +19,7 @@ import {
 } from "@/shared/components/liyon";
 import { Button } from "@/components/ui/button";
 import type { ProgramDto } from "@/features/curriculum";
+import type { DepartmentDto } from "@/features/directory";
 import {
   getProgramsAction,
   createProgramAction,
@@ -28,15 +29,17 @@ import {
 
 interface Props {
   initialPrograms: ProgramDto[];
+  departments: DepartmentDto[];
   canManage: boolean;
 }
 
-export function ProgramsClient({ initialPrograms, canManage }: Props) {
+export function ProgramsClient({ initialPrograms, departments, canManage }: Props) {
   const t = useT();
   const locale = useLocale();
   const [programs, setPrograms] = useState<ProgramDto[]>(initialPrograms);
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState("ALL");
+  const [departmentFilter, setDepartmentFilter] = useState("ALL");
   const [isPending, startTransition] = useTransition();
 
   // Dialog State
@@ -45,6 +48,7 @@ export function ProgramsClient({ initialPrograms, canManage }: Props) {
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<ProgramDto | null>(null);
 
   // Form State
+  const [formDepartmentId, setFormDepartmentId] = useState<string>("");
   const [formCode, setFormCode] = useState("");
   const [formNameTh, setFormNameTh] = useState("");
   const [formNameEn, setFormNameEn] = useState("");
@@ -60,12 +64,16 @@ export function ProgramsClient({ initialPrograms, canManage }: Props) {
   const [formStatus, setFormStatus] = useState<ProgramDto["status"]>("ACTIVE");
 
   const refreshList = async () => {
-    const res = await getProgramsAction(levelFilter === "ALL" ? undefined : levelFilter);
+    const res = await getProgramsAction(
+      levelFilter === "ALL" ? undefined : levelFilter,
+      departmentFilter === "ALL" ? undefined : departmentFilter
+    );
     if (res.ok) setPrograms(res.data);
   };
 
   const openCreateDialog = () => {
     setEditingProgram(null);
+    setFormDepartmentId(departments[0]?.id || "");
     setFormCode("");
     setFormNameTh("");
     setFormNameEn("");
@@ -84,6 +92,7 @@ export function ProgramsClient({ initialPrograms, canManage }: Props) {
 
   const openEditDialog = (item: ProgramDto) => {
     setEditingProgram(item);
+    setFormDepartmentId(item.departmentId || "");
     setFormCode(item.code);
     setFormNameTh(item.nameTh);
     setFormNameEn(item.nameEn);
@@ -105,6 +114,7 @@ export function ProgramsClient({ initialPrograms, canManage }: Props) {
       if (editingProgram) {
         const res = await updateProgramAction({
           id: editingProgram.id,
+          departmentId: formDepartmentId || null,
           code: formCode,
           nameTh: formNameTh,
           nameEn: formNameEn,
@@ -129,6 +139,7 @@ export function ProgramsClient({ initialPrograms, canManage }: Props) {
         }
       } else {
         const res = await createProgramAction({
+          departmentId: formDepartmentId || null,
           code: formCode,
           nameTh: formNameTh,
           nameEn: formNameEn,
@@ -173,9 +184,12 @@ export function ProgramsClient({ initialPrograms, canManage }: Props) {
     const matchesSearch =
       p.code.toLowerCase().includes(search.toLowerCase()) ||
       p.nameTh.toLowerCase().includes(search.toLowerCase()) ||
-      p.nameEn.toLowerCase().includes(search.toLowerCase());
+      p.nameEn.toLowerCase().includes(search.toLowerCase()) ||
+      (p.departmentNameTh && p.departmentNameTh.toLowerCase().includes(search.toLowerCase())) ||
+      (p.departmentNameEn && p.departmentNameEn.toLowerCase().includes(search.toLowerCase()));
     const matchesLevel = levelFilter === "ALL" || p.degreeLevel === levelFilter;
-    return matchesSearch && matchesLevel;
+    const matchesDept = departmentFilter === "ALL" || p.departmentId === departmentFilter;
+    return matchesSearch && matchesLevel && matchesDept;
   });
 
   const columns: DataTableColumn<ProgramDto>[] = [
@@ -193,6 +207,20 @@ export function ProgramsClient({ initialPrograms, canManage }: Props) {
           <p className="text-xs text-muted-foreground">{locale === "en" ? row.nameTh : row.nameEn}</p>
         </div>
       ),
+    },
+    {
+      key: "department",
+      header: t("curriculum.department"),
+      render: (row) => {
+        if (!row.departmentNameTh) {
+          return <span className="text-xs text-muted-foreground italic">-</span>;
+        }
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+            {locale === "en" ? (row.departmentNameEn || row.departmentNameTh) : row.departmentNameTh}
+          </span>
+        );
+      },
     },
     {
       key: "level",
@@ -280,11 +308,36 @@ export function ProgramsClient({ initialPrograms, canManage }: Props) {
                 />
               </span>
               <LiyonSelect
+                value={departmentFilter}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setDepartmentFilter(val);
+                  startTransition(async () => {
+                    const res = await getProgramsAction(
+                      levelFilter === "ALL" ? undefined : levelFilter,
+                      val === "ALL" ? undefined : val
+                    );
+                    if (res.ok) setPrograms(res.data);
+                  });
+                }}
+              >
+                <option value="ALL">{t("curriculum.filterDepartment")}</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {locale === "en" ? dept.nameEn : dept.nameTh} ({dept.code})
+                  </option>
+                ))}
+              </LiyonSelect>
+              <LiyonSelect
                 value={levelFilter}
                 onChange={(e) => {
-                  setLevelFilter(e.target.value);
+                  const val = e.target.value;
+                  setLevelFilter(val);
                   startTransition(async () => {
-                    const res = await getProgramsAction(e.target.value === "ALL" ? undefined : e.target.value);
+                    const res = await getProgramsAction(
+                      val === "ALL" ? undefined : val,
+                      departmentFilter === "ALL" ? undefined : departmentFilter
+                    );
                     if (res.ok) setPrograms(res.data);
                   });
                 }}
@@ -338,6 +391,20 @@ export function ProgramsClient({ initialPrograms, canManage }: Props) {
         />
         <LiyonDialogBody>
           <div className="space-y-4 py-2">
+            <LiyonField label={t("curriculum.department")}>
+              <LiyonSelect
+                value={formDepartmentId}
+                onChange={(e) => setFormDepartmentId(e.target.value)}
+              >
+                <option value="">{t("curriculum.noDepartment")}</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {locale === "en" ? dept.nameEn : dept.nameTh} ({dept.code})
+                  </option>
+                ))}
+              </LiyonSelect>
+            </LiyonField>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <LiyonField label={t("curriculum.code")}>
                 <input

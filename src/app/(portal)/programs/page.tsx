@@ -44,10 +44,15 @@ export default async function ProgramsPage() {
             <div key={p.id} className="rounded-2xl border bg-card p-6 sm:p-8 space-y-4 hover:border-primary/50 transition-colors">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-4">
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-primary/10 text-primary">
                       {p.code}
                     </span>
+                    {p.departmentNameTh && (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-muted text-muted-foreground">
+                        {isEn ? (p.departmentNameEn || p.departmentNameTh) : p.departmentNameTh}
+                      </span>
+                    )}
                     <span className="text-xs font-medium text-muted-foreground">
                       {degree}
                     </span>

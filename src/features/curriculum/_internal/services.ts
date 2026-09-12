@@ -5,6 +5,10 @@ import type { CreateProgramInput, UpdateProgramInput } from "./validations";
 export interface ProgramDto {
   id: string;
   tenantId: string;
+  departmentId: string | null;
+  departmentNameTh?: string | null;
+  departmentNameEn?: string | null;
+  departmentCode?: string | null;
   code: string;
   nameTh: string;
   nameEn: string;
@@ -22,12 +26,18 @@ export interface ProgramDto {
   updatedAt: Date;
 }
 
-type ProgramRecord = Prisma.ProgramGetPayload<Record<string, never>>;
+type ProgramWithDepartment = Prisma.ProgramGetPayload<{
+  include: { department: { select: { id: true; code: true; nameTh: true; nameEn: true } } };
+}>;
 
-function mapProgram(p: ProgramRecord): ProgramDto {
+function mapProgram(p: ProgramWithDepartment): ProgramDto {
   return {
     id: p.id,
     tenantId: p.tenantId,
+    departmentId: p.departmentId,
+    departmentNameTh: p.department?.nameTh ?? null,
+    departmentNameEn: p.department?.nameEn ?? null,
+    departmentCode: p.department?.code ?? null,
     code: p.code,
     nameTh: p.nameTh,
     nameEn: p.nameEn,
@@ -46,18 +56,22 @@ function mapProgram(p: ProgramRecord): ProgramDto {
   };
 }
 
-export async function listPrograms(tenantId?: string, level?: string): Promise<ProgramDto[]> {
-  const where: { tenantId?: string; degreeLevel?: ProgramDegreeLevel } = {};
+export async function listPrograms(tenantId?: string, level?: string, departmentId?: string): Promise<ProgramDto[]> {
+  const where: { tenantId?: string; degreeLevel?: ProgramDegreeLevel; departmentId?: string } = {};
   if (tenantId?.trim()) {
     where.tenantId = tenantId;
   } else {
     const defaultTenant = await prisma.tenant.findFirst({ select: { id: true } });
     if (defaultTenant) where.tenantId = defaultTenant.id;
   }
-  if (level) where.degreeLevel = level as ProgramDegreeLevel;
+  if (level && level !== "ALL") where.degreeLevel = level as ProgramDegreeLevel;
+  if (departmentId && departmentId !== "ALL") where.departmentId = departmentId;
 
   const list = await prisma.program.findMany({
     where,
+    include: {
+      department: { select: { id: true, code: true, nameTh: true, nameEn: true } },
+    },
     orderBy: [
       { degreeLevel: "asc" },
       { code: "asc" },
@@ -69,6 +83,9 @@ export async function listPrograms(tenantId?: string, level?: string): Promise<P
 export async function getProgramById(tenantId: string, id: string): Promise<ProgramDto | null> {
   const p = await prisma.program.findFirst({
     where: { id, tenantId },
+    include: {
+      department: { select: { id: true, code: true, nameTh: true, nameEn: true } },
+    },
   });
   return p ? mapProgram(p) : null;
 }
@@ -77,6 +94,7 @@ export async function createProgram(tenantId: string, input: CreateProgramInput)
   const p = await prisma.program.create({
     data: {
       tenantId,
+      departmentId: input.departmentId || null,
       code: input.code,
       nameTh: input.nameTh,
       nameEn: input.nameEn,
@@ -90,6 +108,9 @@ export async function createProgram(tenantId: string, input: CreateProgramInput)
       brochureFileUrl: input.brochureFileUrl || null,
       description: input.description || null,
       status: input.status,
+    },
+    include: {
+      department: { select: { id: true, code: true, nameTh: true, nameEn: true } },
     },
   });
   return mapProgram(p);
@@ -99,6 +120,7 @@ export async function updateProgram(tenantId: string, input: UpdateProgramInput)
   const p = await prisma.program.update({
     where: { id: input.id, tenantId },
     data: {
+      departmentId: input.departmentId !== undefined ? (input.departmentId || null) : undefined,
       code: input.code,
       nameTh: input.nameTh,
       nameEn: input.nameEn,
@@ -113,6 +135,9 @@ export async function updateProgram(tenantId: string, input: UpdateProgramInput)
       description: input.description || null,
       status: input.status,
     },
+    include: {
+      department: { select: { id: true, code: true, nameTh: true, nameEn: true } },
+    },
   });
   return mapProgram(p);
 }
@@ -120,6 +145,9 @@ export async function updateProgram(tenantId: string, input: UpdateProgramInput)
 export async function deleteProgram(tenantId: string, id: string): Promise<ProgramDto> {
   const p = await prisma.program.delete({
     where: { id, tenantId },
+    include: {
+      department: { select: { id: true, code: true, nameTh: true, nameEn: true } },
+    },
   });
   return mapProgram(p);
 }

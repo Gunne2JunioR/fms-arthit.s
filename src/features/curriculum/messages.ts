@@ -22,6 +22,9 @@ export const MESSAGES: Dictionary = {
   "curriculum.brochureFileUrl": { th: "URL เอกสารหลักสูตร/Brochure", en: "Brochure URL", cn: "课程手册下载链接" },
   "curriculum.description": { th: "คำอธิบายหลักสูตร", en: "Description", cn: "课程简介" },
   "curriculum.status": { th: "สถานะหลักสูตร", en: "Status", cn: "状态" },
+  "curriculum.department": { th: "ภาควิชา/ส่วนงานที่รับผิดชอบ", en: "Responsible Department", cn: "负责学系/部门" },
+  "curriculum.filterDepartment": { th: "ทุกภาควิชา/ส่วนงาน", en: "All Departments", cn: "所有学系/部门" },
+  "curriculum.noDepartment": { th: "ไม่ระบุภาควิชา", en: "Unassigned Department", cn: "未指定学系" },
 
   // Levels
   "curriculum.level.bachelor": { th: "ปริญญาตรี", en: "Bachelor's Degree", cn: "本科" },

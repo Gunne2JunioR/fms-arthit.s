@@ -3,6 +3,7 @@ import "server-only";
 export {
   listStaffProfiles,
   listDepartments,
+  getDepartmentById,
   type StaffProfileDto,
   type DepartmentDto,
 } from "./_internal/services";
