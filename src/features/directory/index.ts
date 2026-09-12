@@ -9,4 +9,9 @@ export type {
   CreateDepartmentInput,
   UpdateDepartmentInput,
   DeleteDepartmentInput,
+  PersonnelType,
+  EmploymentStatus,
+  LinkUserInput,
+  CreateUserFromPersonnelInput,
+  ChangeStatusInput,
 } from "./_internal/validations";

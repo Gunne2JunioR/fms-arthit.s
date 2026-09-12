@@ -45,6 +45,7 @@ export const MESSAGES: Dictionary = {
   "nav.group.settings": { th: "ตั้งค่า", en: "Settings", cn: "系统设置" },
   "nav.dashboard": { th: "แดชบอร์ด", en: "Dashboard", cn: "仪表盘" },
   "nav.users": { th: "ผู้ใช้", en: "Users", cn: "用户" },
+  "nav.personnel": { th: "การจัดการบุคลากร", en: "Personnel Management", cn: "人事与教工管理" },
   "nav.roles": { th: "บทบาท", en: "Roles", cn: "角色权限" },
   "nav.settings": { th: "ตั้งค่าองค์กร", en: "Organization", cn: "组织设置" },
   "account.profile": { th: "โปรไฟล์", en: "Profile", cn: "个人资料" },

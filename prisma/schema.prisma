@@ -74,7 +74,7 @@ model User {
   authTokens  AuthToken[]
   auditLogs   AuditLog[]   @relation("AuditActor")
   articles    Article[]    @relation("ArticleAuthor")
-  staffProfiles         StaffProfile[]
+  staffProfile          StaffProfile?
   bookingReservations   BookingReservation[]
   documentRequests      DocumentRequest[]
   documentApprovalSteps DocumentApprovalStep[]
@@ -283,6 +283,23 @@ enum StaffStatus {
   RESIGNED
 }
 
+enum PersonnelType {
+  EXECUTIVE
+  ACADEMIC
+  SUPPORT
+  CONTRACT
+  OTHER
+}
+
+enum EmploymentStatus {
+  ACTIVE
+  ON_LEAVE_STUDY
+  ON_LEAVE_SICK
+  RETIRED
+  TERMINATED
+  ARCHIVED
+}
+
 model Department {
   id          String   @id @default(uuid()) @db.Uuid
   tenantId    String   @map("tenant_id") @db.Uuid
@@ -303,35 +320,55 @@ model Department {
 }
 
 model StaffProfile {
-  id              String      @id @default(uuid()) @db.Uuid
-  tenantId        String      @map("tenant_id") @db.Uuid
-  departmentId    String      @map("department_id") @db.Uuid
-  userId          String?     @map("user_id") @db.Uuid
-  academicTitleTh String      @map("academic_title_th") @db.VarChar(50)
-  academicTitleEn String      @map("academic_title_en") @db.VarChar(50)
-  firstNameTh     String      @map("first_name_th") @db.VarChar(100)
-  firstNameEn     String      @map("first_name_en") @db.VarChar(100)
-  lastNameTh      String      @map("last_name_th") @db.VarChar(100)
-  lastNameEn      String      @map("last_name_en") @db.VarChar(100)
-  positionTh      String?     @map("position_th") @db.VarChar(100)
-  positionEn      String?     @map("position_en") @db.VarChar(100)
-  email           String      @db.VarChar(255)
-  phoneExt        String?     @map("phone_ext") @db.VarChar(50)
-  roomNumber      String?     @map("room_number") @db.VarChar(50)
-  avatarUrl       String?     @map("avatar_url") @db.VarChar(500)
-  biography       String?     @db.Text
-  expertise       Json        @default("[]") @db.JsonB
-  education       Json        @default("[]") @db.JsonB
-  sortOrder       Int         @default(0) @map("sort_order")
-  status          StaffStatus @default(ACTIVE)
-  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
+  id                  String            @id @default(uuid()) @db.Uuid
+  tenantId            String            @map("tenant_id") @db.Uuid
+  departmentId        String            @map("department_id") @db.Uuid
+  userId              String?           @unique @map("user_id") @db.Uuid
+  personnelCode       String?           @map("personnel_code") @db.VarChar(50)
+  prefix              String?           @db.VarChar(50)
+  academicTitleTh     String            @default("") @map("academic_title_th") @db.VarChar(50)
+  academicTitleEn     String            @default("") @map("academic_title_en") @db.VarChar(50)
+  firstNameTh         String            @map("first_name_th") @db.VarChar(100)
+  firstNameEn         String            @map("first_name_en") @db.VarChar(100)
+  lastNameTh          String            @map("last_name_th") @db.VarChar(100)
+  lastNameEn          String            @map("last_name_en") @db.VarChar(100)
+  gender              String?           @db.VarChar(20)
+  birthDate           DateTime?         @map("birth_date") @db.Date
+  citizenIdEncrypted  String?           @map("citizen_id_encrypted") @db.VarChar(255)
+  personnelType       PersonnelType     @default(ACADEMIC) @map("personnel_type")
+  employmentStatus    EmploymentStatus  @default(ACTIVE) @map("employment_status")
+  subDepartmentName   String?           @map("sub_department_name") @db.VarChar(255)
+  positionName        String?           @map("position_name") @db.VarChar(100)
+  positionTh          String?           @map("position_th") @db.VarChar(100)
+  positionEn          String?           @map("position_en") @db.VarChar(100)
+  academicPosition    String?           @map("academic_position") @db.VarChar(100)
+  email               String            @db.VarChar(255)
+  universityEmail     String?           @map("university_email") @db.VarChar(255)
+  personalEmail       String?           @map("personal_email") @db.VarChar(255)
+  phoneNumber         String?           @map("phone_number") @db.VarChar(50)
+  phoneExt            String?           @map("phone_ext") @db.VarChar(50)
+  roomNumber          String?           @map("room_number") @db.VarChar(50)
+  workLocation        String?           @map("work_location") @db.VarChar(255)
+  startDate           DateTime?         @map("start_date") @db.Date
+  endDate             DateTime?         @map("end_date") @db.Date
+  retirementDate      DateTime?         @map("retirement_date") @db.Date
+  avatarUrl           String?           @map("avatar_url") @db.VarChar(500)
+  biography           String?           @db.Text
+  expertise           Json              @default("[]") @db.JsonB
+  education           Json              @default("[]") @db.JsonB
+  sortOrder           Int               @default(0) @map("sort_order")
+  status              StaffStatus       @default(ACTIVE)
+  archivedAt          DateTime?         @map("archived_at") @db.Timestamptz()
+  createdAt           DateTime          @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt           DateTime          @updatedAt @map("updated_at") @db.Timestamptz()
 
   tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   department Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
   user       User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  @@unique([tenantId, personnelCode])
   @@index([tenantId, departmentId])
+  @@index([tenantId, employmentStatus])
   @@index([tenantId, sortOrder])
   @@map("staff_profiles")
 }

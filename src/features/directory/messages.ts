@@ -39,6 +39,104 @@ export const MESSAGES: Dictionary = {
   "directory.save": { th: "บันทึก", en: "Save", cn: "保存" },
   "directory.cancel": { th: "ยกเลิก", en: "Cancel", cn: "取消" },
 
+  // Personnel Management Module (/users/personnel)
+  "personnel.title": { th: "การจัดการบุคลากร", en: "Personnel Management", cn: "教职工与人事管理" },
+  "personnel.subtitle": { th: "จัดการข้อมูลประวัติ การปฏิบัติงาน และการเชื่อมโยงบัญชีผู้ใช้ระบบของบุคลากร", en: "Manage personnel profiles, employment records, and system account links", cn: "管理教职工档案、任职情况及系统用户关联" },
+  "personnel.searchPlaceholder": { th: "ค้นหาชื่อ รหัสบุคลากร หรืออีเมล...", en: "Search by name, ID, or email...", cn: "搜索姓名、工号或邮箱..." },
+  "personnel.addBtn": { th: "เพิ่มบุคลากร", en: "Add Personnel", cn: "新增教职工" },
+  "personnel.importBtn": { th: "นำเข้า Excel/CSV", en: "Import Excel/CSV", cn: "导入 Excel/CSV" },
+  "personnel.exportBtn": { th: "ส่งออกข้อมูล", en: "Export Data", cn: "导出数据" },
+  "personnel.filterDept": { th: "ทุกหน่วยงาน / สังกัด", en: "All Departments", cn: "所有单位/部门" },
+  "personnel.filterType": { th: "ทุกประเภทบุคลากร", en: "All Personnel Types", cn: "所有人员类型" },
+  "personnel.filterStatus": { th: "ทุกสถานะการปฏิบัติงาน", en: "All Employment Statuses", cn: "所有在职状态" },
+
+  // Columns
+  "personnel.colCode": { th: "รหัสบุคลากร", en: "Personnel Code", cn: "工号" },
+  "personnel.colName": { th: "ชื่อ-นามสกุล", en: "Full Name", cn: "姓名" },
+  "personnel.colPosition": { th: "ตำแหน่ง", en: "Position", cn: "职务" },
+  "personnel.colDept": { th: "สังกัด / หน่วยงาน", en: "Department / Unit", cn: "所属单位/部门" },
+  "personnel.colType": { th: "ประเภทบุคลากร", en: "Personnel Type", cn: "人员类型" },
+  "personnel.colEmail": { th: "อีเมล", en: "Email", cn: "邮箱" },
+  "personnel.colUser": { th: "บัญชีผู้ใช้", en: "System Account", cn: "系统账号" },
+  "personnel.colStatus": { th: "สถานะ", en: "Status", cn: "状态" },
+  "personnel.colUpdatedAt": { th: "วันที่ปรับปรุงล่าสุด", en: "Last Updated", cn: "最后更新时间" },
+  "personnel.noUser": { th: "ยังไม่มีบัญชีผู้ใช้", en: "No Account", cn: "无账号" },
+
+  // Personnel Types
+  "personnel.type.EXECUTIVE": { th: "ผู้บริหาร", en: "Executive", cn: "管理层/领导" },
+  "personnel.type.ACADEMIC": { th: "สายวิชาการ", en: "Academic Faculty", cn: "专任教师" },
+  "personnel.type.SUPPORT": { th: "สายสนับสนุน", en: "Support Staff", cn: "行政教辅" },
+  "personnel.type.CONTRACT": { th: "ลูกจ้าง / ตามสัญญา", en: "Contractor / Employee", cn: "合同制雇员" },
+  "personnel.type.OTHER": { th: "อื่น ๆ", en: "Other", cn: "其他" },
+
+  // Employment Statuses
+  "personnel.status.ACTIVE": { th: "ปฏิบัติงาน", en: "Active", cn: "在职" },
+  "personnel.status.ON_LEAVE_STUDY": { th: "ลาศึกษาต่อ", en: "Study Leave", cn: "进修深造" },
+  "personnel.status.ON_LEAVE_SICK": { th: "ลาพักงาน / ลาป่วย", en: "Medical / Extended Leave", cn: "病休/停薪留职" },
+  "personnel.status.RETIRED": { th: "เกษียณ", en: "Retired", cn: "退休" },
+  "personnel.status.TERMINATED": { th: "พ้นสภาพ", en: "Terminated", cn: "离职/解聘" },
+  "personnel.status.ARCHIVED": { th: "เก็บถาวร", en: "Archived", cn: "已归档" },
+
+  // Form Sections
+  "personnel.tabPersonalInfo": { th: "ข้อมูลส่วนบุคคล", en: "Personal Information", cn: "个人基本信息" },
+  "personnel.tabEmployment": { th: "ข้อมูลการปฏิบัติงาน", en: "Employment Details", cn: "任职与岗位信息" },
+  "personnel.tabContact": { th: "ข้อมูลติดต่อ", en: "Contact Information", cn: "联络方式" },
+  "personnel.tabAccount": { th: "การเชื่อมโยงบัญชีผู้ใช้", en: "User Account Link", cn: "系统账户关联" },
+
+  // Form Fields
+  "personnel.avatar": { th: "รูปประจำตัว", en: "Profile Picture", cn: "头像照片" },
+  "personnel.avatarHint": { th: "รองรับ PNG, JPG, JPEG, WEBP ขนาดไม่เกิน 5 MB", en: "PNG, JPG, JPEG, WEBP up to 5 MB", cn: "支持 PNG, JPG, JPEG, WEBP 格式，大小不超过 5 MB" },
+  "personnel.prefix": { th: "คำนำหน้าชื่อ", en: "Prefix / Title", cn: "称谓/头衔" },
+  "personnel.firstNameTh": { th: "ชื่อภาษาไทย", en: "First Name (Thai)", cn: "名字（泰文）" },
+  "personnel.lastNameTh": { th: "นามสกุลภาษาไทย", en: "Last Name (Thai)", cn: "姓氏（泰文）" },
+  "personnel.firstNameEn": { th: "ชื่อภาษาอังกฤษ", en: "First Name (English)", cn: "名字（英文）" },
+  "personnel.lastNameEn": { th: "นามสกุลภาษาอังกฤษ", en: "Last Name (English)", cn: "姓氏（英文）" },
+  "personnel.gender": { th: "เพศ", en: "Gender", cn: "性别" },
+  "personnel.gender.male": { th: "ชาย", en: "Male", cn: "男" },
+  "personnel.gender.female": { th: "หญิง", en: "Female", cn: "女" },
+  "personnel.gender.other": { th: "อื่น ๆ", en: "Other", cn: "其他" },
+  "personnel.birthDate": { th: "วันเดือนปีเกิด", en: "Date of Birth", cn: "出生日期" },
+  "personnel.citizenId": { th: "เลขบัตรประชาชน", en: "Citizen ID / Passport", cn: "身份证件号" },
+  "personnel.subDept": { th: "หน่วยงานรอง / ฝ่ายย่อย", en: "Sub-Department / Division", cn: "二级单位/教研室" },
+  "personnel.positionName": { th: "ตำแหน่งงาน", en: "Job Title", cn: "岗位职称" },
+  "personnel.academicPosition": { th: "ตำแหน่งทางวิชาการ", en: "Academic Position", cn: "专业技术职务" },
+  "personnel.startDate": { th: "วันที่เริ่มปฏิบัติงาน", en: "Start Date", cn: "入职日期" },
+  "personnel.endDate": { th: "วันที่สิ้นสุดการปฏิบัติงาน", en: "End Date", cn: "离职日期" },
+  "personnel.retirementDate": { th: "วันเกษียณอายุ", en: "Retirement Date", cn: "退休日期" },
+  "personnel.workLocation": { th: "สถานที่ปฏิบัติงาน / ห้องทำงาน", en: "Office / Work Location", cn: "办公地点/房间号" },
+  "personnel.universityEmail": { th: "อีเมลมหาวิทยาลัย / องค์กร", en: "Institutional Email", cn: "单位/校园邮箱" },
+  "personnel.personalEmail": { th: "อีเมลส่วนตัว", en: "Personal Email", cn: "个人邮箱" },
+  "personnel.phoneNumber": { th: "โทรศัพท์มือถือ", en: "Mobile Phone", cn: "手机号码" },
+  "personnel.phoneExt": { th: "เบอร์ต่อภายใน", en: "Ext. Number", cn: "分机号码" },
+
+  // User Account Link
+  "personnel.linkedAccount": { th: "บัญชีผู้ใช้ที่เชื่อมโยง", en: "Linked User Account", cn: "已关联用户账号" },
+  "personnel.noLinkedAccount": { th: "ยังไม่ได้เชื่อมโยงกับบัญชีผู้ใช้ใด", en: "Not linked to any user account", cn: "尚未关联任何系统账号" },
+  "personnel.selectUser": { th: "เลือกบัญชีผู้ใช้ที่ยังไม่ถูกเชื่อมโยง", en: "Select an unlinked user account", cn: "选择未关联的用户账号" },
+  "personnel.createAccountBtn": { th: "สร้างบัญชีผู้ใช้จากข้อมูลบุคลากร", en: "Create User Account from Personnel", cn: "从此人员信息创建账号" },
+  "personnel.createAccountDesc": { th: "ระบบจะสร้างบัญชีผู้ใช้ใหม่ด้วยอีเมลและชื่อของบุคลากรท่านนี้ และเชื่อมโยงอัตโนมัติ", en: "System will create a user account using personnel email and name, then link automatically.", cn: "系统将使用此人员的邮箱和姓名创建新用户并自动绑定。" },
+  "personnel.assignRole": { th: "กำหนดบทบาทตั้งต้นให้ผู้ใช้", en: "Assign Initial Role", cn: "赋予初始角色" },
+  "personnel.unlinkUser": { th: "ยกเลิกการเชื่อมโยงบัญชี", en: "Unlink User", cn: "解除关联" },
+
+  // Actions Menu
+  "personnel.menuView": { th: "ดูรายละเอียด", en: "View Details", cn: "查看详情" },
+  "personnel.menuEdit": { th: "แก้ไขข้อมูล", en: "Edit Profile", cn: "编辑资料" },
+  "personnel.menuLink": { th: "เชื่อมโยงบัญชีผู้ใช้", en: "Link User Account", cn: "关联系统用户" },
+  "personnel.menuCreateUser": { th: "สร้างบัญชีผู้ใช้จากบุคลากร", en: "Create Account", cn: "创建登录账号" },
+  "personnel.menuChangeStatus": { th: "เปลี่ยนสถานะบุคลากร", en: "Change Status", cn: "变更状态" },
+  "personnel.menuDelete": { th: "ลบข้อมูล", en: "Delete", cn: "删除" },
+
+  // Feedback & Dialogs
+  "personnel.deleteConfirm": { th: "คุณต้องการลบข้อมูลบุคลากรท่านนี้ใช่หรือไม่? หากมีข้อมูลอ้างอิงในระบบ จะถูกเปลี่ยนเป็นสถานะ 'เก็บถาวร' เพื่อความปลอดภัยของข้อมูล", en: "Are you sure you want to delete this record? If referenced elsewhere, it will be archived safely.", cn: "确定要删除此人员记录吗？若有系统关联引用，将被转为'已归档'状态以确保数据完整性。" },
+  "personnel.deleteSuccess": { th: "ลบข้อมูลบุคลากรเรียบร้อยแล้ว", en: "Personnel deleted successfully", cn: "人员记录删除成功" },
+  "personnel.archiveSuccess": { th: "เปลี่ยนสถานะเป็นเก็บถาวรเรียบร้อยแล้ว (เนื่องจากมีข้อมูลอ้างอิง)", en: "Archived successfully due to existing references", cn: "已成功转为归档（由于存在系统引用）" },
+  "personnel.saveSuccess": { th: "บันทึกข้อมูลบุคลากรเรียบร้อยแล้ว", en: "Personnel saved successfully", cn: "人员信息保存成功" },
+  "personnel.linkSuccess": { th: "เชื่อมโยงบัญชีผู้ใช้เรียบร้อยแล้ว", en: "User account linked successfully", cn: "系统账号关联成功" },
+  "personnel.userCreatedSuccess": { th: "สร้างบัญชีผู้ใช้และเชื่อมโยงเรียบร้อยแล้ว", en: "User account created and linked successfully", cn: "用户账号创建并关联成功" },
+  "personnel.statusChangeSuccess": { th: "เปลี่ยนสถานะการปฏิบัติงานเรียบร้อยแล้ว", en: "Employment status updated successfully", cn: "在职状态更新成功" },
+  "personnel.codeExistsError": { th: "รหัสบุคลากรนี้มีอยู่ในระบบแล้ว กรุณาระบุรหัสอื่น", en: "This personnel code already exists", cn: "该工号已存在，请使用其他工号" },
+  "personnel.userAlreadyLinkedError": { th: "บัญชีผู้ใช้นี้ถูกเชื่อมโยงกับบุคลากรท่านอื่นแล้ว", en: "This user account is already linked to another person", cn: "该用户账号已与其他人员绑定" },
+
   // Department Management
   "department.title": { th: "ภาควิชาและส่วนงาน", en: "Departments & Units", cn: "学系与部门" },
   "department.subtitle": { th: "จัดการข้อมูลภาควิชา ส่วนงาน และหลักสูตรที่เปิดสอนภายใต้สังกัด", en: "Manage departments, academic units, and affiliated curricula", cn: "管理学系、行政部门及下属专业课程" },

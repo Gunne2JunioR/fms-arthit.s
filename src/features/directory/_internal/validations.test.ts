@@ -7,6 +7,8 @@ describe("directory validations", () => {
   it("validate createStaffSchema ผ่านเมื่อข้อมูลครบ", () => {
     const valid = {
       departmentId: dummyDeptId,
+      personnelCode: "PERS-001",
+      positionName: "อาจารย์ประจำ",
       academicTitleTh: "ดร.",
       academicTitleEn: "Dr.",
       firstNameTh: "สมชาย",
@@ -21,12 +23,15 @@ describe("directory validations", () => {
     const parsed = createStaffSchema.parse(valid);
     expect(parsed.firstNameTh).toBe("สมชาย");
     expect(parsed.status).toBe("ACTIVE");
+    expect(parsed.personnelCode).toBe("PERS-001");
   });
 
   it("validate createStaffSchema ล้มเมื่ออีเมลไม่ถูกต้อง", () => {
     expect(() =>
       createStaffSchema.parse({
         departmentId: dummyDeptId,
+        personnelCode: "PERS-001",
+        positionName: "อาจารย์ประจำ",
         academicTitleTh: "ดร.",
         academicTitleEn: "Dr.",
         firstNameTh: "สมชาย",
@@ -42,6 +47,8 @@ describe("directory validations", () => {
     const valid = {
       id: dummyDeptId,
       departmentId: dummyDeptId,
+      personnelCode: "PERS-001",
+      positionName: "อาจารย์ประจำ",
       academicTitleTh: "ดร.",
       academicTitleEn: "Dr.",
       firstNameTh: "สมชาย",

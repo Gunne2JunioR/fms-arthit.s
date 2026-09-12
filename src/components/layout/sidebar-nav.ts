@@ -9,6 +9,7 @@ import {
   Calendar,
   FileText,
   Globe,
+  Contact,
   type LucideIcon,
 } from "lucide-react";
 import { hasPermission, P } from "@/features/identity";
@@ -59,6 +60,7 @@ export const sidebarGroups: NavGroup[] = [
       title: "nav.users", href: "/users", icon: Users, permission: P.usersRead,
       children: [
         { title: "nav.users", href: "/users", permission: P.usersRead },
+        { title: "nav.personnel", href: "/users/personnel", icon: Contact, permission: DIRECTORY_P.staffRead },
         { title: "nav.roles", href: "/users/roles", permission: P.rolesManage },
       ],
     }],
