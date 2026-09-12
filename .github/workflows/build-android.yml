@@ -79,7 +79,19 @@ jobs:
       - name: Build Android Debug APK
         run: |
           cd android
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug --stacktrace 2>&1 | tee ../gradle.log
+
+      - name: Report Build Failure Details
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "=== GRADLE BUILD FAILED ==="
+          tail -n 60 gradle.log || true
+          gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments -f body="### Gradle Build Failed
+          \`\`\`
+          $(tail -n 50 gradle.log)
+          \`\`\`" || true
 
       - name: Copy and Rename APK
         run: |
