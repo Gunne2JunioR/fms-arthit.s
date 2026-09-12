@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createUserSchema, updateUserSchema } from "./users";
+import { createUserSchema, updateUserSchema, importUsersInputSchema } from "./users";
 
 const ROLE_A = "11111111-1111-4111-8111-111111111111";
 const ROLE_B = "22222222-2222-4222-8222-222222222222";
@@ -53,5 +53,25 @@ describe("roleAssignments — กันบทบาทซ้ำในคำข�
       roles: [assign(ROLE_A)],
     });
     expect(invalidGoogleEmail.success).toBe(false);
+  });
+
+  it("importUsersInputSchema: ตรวจสอบข้อมูลผู้ใช้สำหรับนำเข้าจาก CSV", () => {
+    const valid = importUsersInputSchema.parse({
+      users: [
+        {
+          name: "Somchai Jaidee",
+          email: "somchai@university.ac.th",
+          roles: "ADMIN; TEACHER",
+          googleEmail: "somchai@gmail.com",
+          allowGoogleLogin: true,
+        },
+      ],
+    });
+    expect(valid.users).toHaveLength(1);
+    expect(valid.users[0].name).toBe("Somchai Jaidee");
+    expect(valid.users[0].roles).toBe("ADMIN; TEACHER");
+
+    // Fail on empty users
+    expect(importUsersInputSchema.safeParse({ users: [] }).success).toBe(false);
   });
 });

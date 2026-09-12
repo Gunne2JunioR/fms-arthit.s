@@ -6,7 +6,15 @@ import { env } from "@/shared/lib/infra/env";
 import { prisma } from "@/shared/lib/infra/prisma";
 import { P } from "../../permissions";
 import { requirePermission } from "../rbac";
-import { listUsersQuerySchema, createUserSchema, updateUserSchema, setUserActiveSchema, issuePasswordLinkSchema, requestEmailChangeSchema } from "../validations/users";
+import {
+  listUsersQuerySchema,
+  createUserSchema,
+  updateUserSchema,
+  setUserActiveSchema,
+  issuePasswordLinkSchema,
+  requestEmailChangeSchema,
+  importUsersInputSchema,
+} from "../validations/users";
 import * as svc from "../services/user.service";
 
 const em = async () => ({ error: zodErrorMap(await getLocale()) });
@@ -71,4 +79,26 @@ export async function requestEmailChangeAction(input: unknown): Promise<ActionRe
 
 export async function confirmEmailChangeAction(token: string): Promise<ActionResult<boolean>> {
   return runAction(() => svc.confirmEmailChange(token));
+}
+
+export async function exportUsersCsvAction(filter?: {
+  status?: "all" | "active" | "inactive";
+  roleId?: string;
+}): Promise<ActionResult<{ csv: string; filename: string }>> {
+  return runAction(async () => {
+    const ctx = await requirePermission(P.usersRead);
+    const csv = await svc.exportUsersToCsv(ctx.tenantId, filter);
+    const filename = `users-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    return { csv, filename };
+  });
+}
+
+export async function importUsersCsvAction(
+  input: unknown,
+): Promise<ActionResult<svc.ImportUsersResult>> {
+  return runAction(async () => {
+    const ctx = await requirePermission(P.usersManage);
+    const parsed = importUsersInputSchema.parse(input, await em());
+    return svc.importUsersFromCsv({ ...actorOf(ctx), users: parsed.users });
+  });
 }

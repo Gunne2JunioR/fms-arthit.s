@@ -229,10 +229,171 @@ export async function confirmEmailChange(raw: string): Promise<boolean> {
     if (ut) {
       await writeAudit({ tenantId: ut.tenantId, actorId: c.userId, action: "user.email_change", entity: "user", entityId: c.userId, before, after: { email: newEmail } }, tx);
     } else {
-      // audit_logs.tenant_id เป็น NOT NULL — ไม่มี membership ใด ๆ แปลว่าเขียน audit ไม่ได้เลย (ไม่ใช่แค่ข้าม tenant)
-      // เปลี่ยนอีเมลสำเร็จแล้วแต่ไม่มีร่องรอย audit จึงต้องส่งเสียงเตือนแทนที่จะเงียบไปเฉย ๆ
       logger.warn("confirmEmailChange: no tenant membership found, email changed without an audit row", { userId: c.userId });
     }
   });
   return true;
+}
+
+export interface ImportUsersResult {
+  total: number;
+  successCount: number;
+  failedCount: number;
+  errors: { row: number; email: string; name: string; reason: string }[];
+}
+
+function escapeCsvField(val: string | null | undefined): string {
+  if (val === null || val === undefined) return "";
+  const str = String(val);
+  if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+export async function exportUsersToCsv(
+  tenantId: string,
+  filter?: { status?: "all" | "active" | "inactive"; roleId?: string },
+): Promise<string> {
+  const where = {
+    tenantId,
+    ...(filter?.status === "active"
+      ? { isActive: true, user: { isActive: true } }
+      : filter?.status === "inactive"
+        ? { OR: [{ isActive: false }, { user: { isActive: false } }] }
+        : {}),
+    ...(filter?.roleId ? { userRoles: { some: { roleId: filter.roleId } } } : {}),
+  };
+
+  const rows = await prisma.userTenant.findMany({
+    where,
+    orderBy: { user: { name: "asc" } },
+    include: {
+      user: true,
+      userRoles: { select: roleSelect },
+    },
+  });
+
+  const header = ["Name", "Email", "Roles", "Google Email", "Allow Google Login", "Status", "Last Login At"];
+  const lines: string[] = [header.join(",")];
+
+  for (const r of rows) {
+    const roleCodes = r.userRoles.map((ur) => ur.role.code).join("; ");
+    const status = r.isActive && r.user.isActive ? "active" : "inactive";
+    const lastLogin = r.user.lastLoginAt ? r.user.lastLoginAt.toISOString() : "";
+    const line = [
+      escapeCsvField(r.user.name),
+      escapeCsvField(r.user.email),
+      escapeCsvField(roleCodes),
+      escapeCsvField(r.user.googleEmail),
+      escapeCsvField(r.user.allowGoogleLogin ? "true" : "false"),
+      escapeCsvField(status),
+      escapeCsvField(lastLogin),
+    ];
+    lines.push(line.join(","));
+  }
+
+  // Prepend UTF-8 BOM so Excel opens Thai characters seamlessly
+  return "\uFEFF" + lines.join("\r\n");
+}
+
+export async function importUsersFromCsv(
+  input: Actor & {
+    users: {
+      name: string;
+      email: string;
+      roles: string;
+      googleEmail?: string | null;
+      allowGoogleLogin?: boolean;
+    }[];
+  },
+): Promise<ImportUsersResult> {
+  // Pre-fetch all roles for this tenant
+  const tenantRoles = await prisma.role.findMany({
+    where: { tenantId: input.tenantId },
+    select: { id: true, code: true, nameTh: true, nameEn: true },
+  });
+
+  const roleCodeMap = new Map<string, string>(); // code/name lowercase -> roleId
+  for (const r of tenantRoles) {
+    roleCodeMap.set(r.code.toLowerCase(), r.id);
+    roleCodeMap.set(r.nameTh.toLowerCase(), r.id);
+    roleCodeMap.set(r.nameEn.toLowerCase(), r.id);
+  }
+
+  const result: ImportUsersResult = {
+    total: input.users.length,
+    successCount: 0,
+    failedCount: 0,
+    errors: [],
+  };
+
+  for (let i = 0; i < input.users.length; i++) {
+    const rowNum = i + 1;
+    const item = input.users[i];
+    const email = item.email.toLowerCase().trim();
+    const name = item.name.trim();
+
+    try {
+      // Split role codes by semicolon, comma, or space
+      const rawRoles = item.roles
+        .split(/[;,]+/)
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean);
+
+      if (rawRoles.length === 0) {
+        throw new Error("ไม่มีการระบุบทบาท (Roles)");
+      }
+
+      const roleIds: string[] = [];
+      for (const rCode of rawRoles) {
+        const id = roleCodeMap.get(rCode);
+        if (!id) {
+          throw new Error(`ไม่พบบทบาท '${rCode}' ในระบบ`);
+        }
+        if (!roleIds.includes(id)) {
+          roleIds.push(id);
+        }
+      }
+
+      const roleAssignments: RoleAssignment[] = roleIds.map((id) => ({
+        roleId: id,
+        scopeType: "ALL" as const,
+        scopeId: null,
+      }));
+
+      // Call createUser
+      await createUser({
+        ...input,
+        email,
+        name,
+        roles: roleAssignments,
+        googleEmail: item.googleEmail ? item.googleEmail.toLowerCase().trim() : null,
+        allowGoogleLogin: item.allowGoogleLogin ?? true,
+      });
+
+      result.successCount++;
+    } catch (err: unknown) {
+      result.failedCount++;
+      const reason =
+        err instanceof Error
+          ? err.message === "email_taken"
+            ? "อีเมลนี้มีผู้ใช้งานในระบบแล้ว"
+            : err.message === "google_email_taken"
+              ? "อีเมล Google นี้เชื่อมโยงกับบัญชีอื่นแล้ว"
+              : err.message === "super_admin_protected"
+                ? "ไม่สามารถกำหนดบทบาท SUPER_ADMIN ผ่านการนำเข้าได้"
+                : err.message
+          : "เกิดข้อผิดพลาดในการบันทึกข้อมูล";
+
+      result.errors.push({
+        row: rowNum,
+        email,
+        name,
+        reason,
+      });
+    }
+  }
+
+  return result;
 }

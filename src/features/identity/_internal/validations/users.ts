@@ -53,7 +53,21 @@ export const setUserActiveSchema = z.object({ userId: z.string().uuid(), isActiv
 export const issuePasswordLinkSchema = z.object({ userId: z.string().uuid() });
 export const requestEmailChangeSchema = z.object({ userId: z.string().uuid(), newEmail: emailSchema });
 
+export const csvUserRowSchema = z.object({
+  name: z.string().trim().min(1, "name_required").max(255),
+  email: emailSchema,
+  roles: z.string().trim().min(1, "role_required"), // comma-separated role codes or names
+  googleEmail: googleEmailSchema,
+  allowGoogleLogin: z.boolean().optional().default(true),
+});
+
+export const importUsersInputSchema = z.object({
+  users: z.array(csvUserRowSchema).min(1, "no_users_to_import").max(500, "too_many_rows"),
+});
+
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
 export type RoleAssignment = z.infer<typeof roleAssignmentSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type CsvUserRow = z.infer<typeof csvUserRowSchema>;
+export type ImportUsersInput = z.infer<typeof importUsersInputSchema>;
