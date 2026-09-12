@@ -3,7 +3,7 @@ import { prisma, type Db } from "@/shared/lib/infra/prisma";
 import { DEFAULT_PALETTE, isPalette, type PaletteId } from "@/shared/lib/palette";
 import { errors } from "@/shared/lib/errors";
 import { writeAudit } from "../audit";
-import type { SmtpConfig, UpdateSettingsInput } from "../validations/settings";
+import type { SmtpConfig, ContactConfig, UpdateSettingsInput } from "../validations/settings";
 
 export interface TenantSettings {
   code: string;
@@ -12,14 +12,16 @@ export interface TenantSettings {
   logoUrl: string | null;
   palette: PaletteId;
   smtp?: SmtpConfig | null;
+  contact?: ContactConfig | null;
 }
 
 async function readTenantSettings(tenantId: string, db: Db): Promise<TenantSettings> {
   const t = await db.tenant.findUnique({ where: { id: tenantId } });
   if (!t) throw errors.not_found();
-  const settingsObj = (t.settings as { palette?: unknown; smtp?: unknown }) || {};
+  const settingsObj = (t.settings as { palette?: unknown; smtp?: unknown; contact?: unknown }) || {};
   const p = settingsObj.palette;
   const smtp = (settingsObj.smtp as SmtpConfig) || null;
+  const contact = (settingsObj.contact as ContactConfig) || null;
   return {
     code: t.code,
     nameTh: t.nameTh,
@@ -27,6 +29,7 @@ async function readTenantSettings(tenantId: string, db: Db): Promise<TenantSetti
     logoUrl: t.logoUrl,
     palette: isPalette(p) ? p : DEFAULT_PALETTE,
     smtp,
+    contact,
   };
 }
 
@@ -40,7 +43,7 @@ export async function getTenantSmtp(tenantId: string): Promise<SmtpConfig | null
   return s?.enabled && s.user && s.pass ? s : null;
 }
 
-/** เก็บคีย์อื่น ๆ ใน settings JSON ไว้ทั้งหมด — merge เฉพาะ palette และ smtp ที่เปลี่ยน ไม่ทับทั้งก้อน */
+/** เก็บคีย์อื่น ๆ ใน settings JSON ไว้ทั้งหมด — merge เฉพาะ palette, smtp, และ contact ที่เปลี่ยน ไม่ทับทั้งก้อน */
 export async function updateTenantSettings(input: { tenantId: string; actorId: string } & UpdateSettingsInput): Promise<void> {
   await prisma.$transaction(async (tx) => {
     // อ่านผ่าน tx เดียวกัน ไม่ใช่ client กลาง — ไม่งั้นทรานแซกชันนี้กินคอนเนกชันจากพูลเพิ่มอีกเส้นเพื่ออ่าน
@@ -52,6 +55,7 @@ export async function updateTenantSettings(input: { tenantId: string; actorId: s
       ...prevSettings,
       palette: input.palette,
       ...(input.smtp !== undefined ? { smtp: input.smtp } : {}),
+      ...(input.contact !== undefined ? { contact: input.contact } : {}),
     };
     await tx.tenant.update({
       where: { id: input.tenantId },

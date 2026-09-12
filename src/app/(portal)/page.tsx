@@ -3,16 +3,27 @@ import { getT } from "@/i18n/server";
 import { getLocale } from "@/shared/lib/i18n/server";
 import { formatDate } from "@/shared/lib/format";
 import { listPublishedArticles } from "@/features/news/server";
+import { resolveTenantSettings } from "@/features/identity/server";
 import { ArrowRight, Calendar, Eye, Pin, Users, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PortalHero } from "@/components/portal/portal-hero";
 
 export default async function PortalHomePage() {
-  const [t, locale] = await Promise.all([getT(), getLocale()]);
+  const [t, locale, tenantSettings] = await Promise.all([
+    getT(),
+    getLocale(),
+    resolveTenantSettings().catch(() => null),
+  ]);
   const [featuredArticles, latestArticles] = await Promise.all([
     listPublishedArticles(undefined, { onlyPinned: true, limit: 2 }),
     listPublishedArticles(undefined, { limit: 6 }),
   ]);
+
+  const contact = tenantSettings?.contact;
+  const heroAddress =
+    (locale === "en" ? (contact?.addressEn || contact?.addressTh) : (contact?.addressTh || contact?.addressEn)) ||
+    t("portal.heroAddress");
+  const heroPhone = contact?.phone || t("portal.heroPhone");
 
   return (
     <div className="space-y-16 pb-20">
@@ -33,8 +44,8 @@ export default async function PortalHomePage() {
         chipBizLabel={t("portal.heroChipBiz")}
         chipCloudLabel={t("portal.heroChipCloud")}
         heroCallLabel={t("portal.heroCallLabel")}
-        heroPhone={t("portal.heroPhone")}
-        heroAddress={t("portal.heroAddress")}
+        heroPhone={heroPhone}
+        heroAddress={heroAddress}
         metrics={{
           bachelorCount: "4",
           bachelorLabel: t("portal.metric.bachelor"),

@@ -20,6 +20,9 @@ interface PortalFooterProps {
   addressText: string;
   phoneText: string;
   emailText: string;
+  mapUrl?: string | null;
+  facebookUrl?: string | null;
+  websiteUrl?: string | null;
   programs: Array<{ href: string; label: string }>;
   quickLinks: FooterLink[];
 }
@@ -38,6 +41,9 @@ export function PortalFooter({
   addressText,
   phoneText,
   emailText,
+  mapUrl,
+  facebookUrl,
+  websiteUrl,
   programs,
   quickLinks,
 }: PortalFooterProps) {
@@ -152,11 +158,29 @@ export function PortalFooter({
             <div className="space-y-2.5 text-xs sm:text-sm text-[var(--ink-band-muted)]">
               <div className="flex items-start gap-2.5">
                 <MapPin className="h-4 w-4 text-[var(--brand-light)] shrink-0 mt-0.5" />
-                <span className="leading-snug">{addressText}</span>
+                <span className="leading-snug">
+                  {mapUrl ? (
+                    <a
+                      href={mapUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-white transition-colors underline-offset-4 hover:underline"
+                    >
+                      {addressText}
+                    </a>
+                  ) : (
+                    addressText
+                  )}
+                </span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="h-4 w-4 text-[var(--brand-light)] shrink-0" />
-                <span>{phoneText}</span>
+                <a
+                  href={`tel:${phoneText.replace(/[^\d+]/g, "")}`}
+                  className="hover:text-white transition-colors"
+                >
+                  {phoneText}
+                </a>
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 text-[var(--brand-light)] shrink-0" />
@@ -171,6 +195,33 @@ export function PortalFooter({
                 <Clock className="h-3.5 w-3.5 text-[var(--brand-light)] shrink-0" />
                 <span>{hoursLabel}</span>
               </div>
+
+              {(facebookUrl || websiteUrl) && (
+                <div className="flex items-center gap-3 pt-2 text-xs">
+                  {facebookUrl && (
+                    <a
+                      href={facebookUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[var(--brand-light)] hover:text-white hover:underline transition-colors"
+                    >
+                      Facebook
+                      <ArrowUpRight className="h-3 w-3" />
+                    </a>
+                  )}
+                  {websiteUrl && (
+                    <a
+                      href={websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[var(--brand-light)] hover:text-white hover:underline transition-colors"
+                    >
+                      Website
+                      <ArrowUpRight className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

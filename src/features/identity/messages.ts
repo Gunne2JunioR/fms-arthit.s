@@ -204,6 +204,18 @@ export const MESSAGES: Dictionary = {
   "settings.testing": { th: "กำลังทดสอบเชื่อมต่อ...", en: "Testing Connection...", cn: "正在测试连接..." },
   "settings.testSuccess": { th: "เชื่อมต่อและส่งอีเมลทดสอบสำเร็จแล้ว! กรุณาตรวจสอบกล่องจดหมายของคุณ", en: "Connection successful! Test email sent, please check your inbox.", cn: "连接成功！测试邮件已发送，请检查收件箱。" },
   "settings.testFailed": { th: "การทดสอบเชื่อมต่อล้มเหลว: ", en: "Connection failed: ", cn: "连接失败: " },
+  // contact info settings
+  "settings.contactTitle": { th: "ข้อมูลการติดต่อขององค์กร (Portal Contact Information)", en: "Portal Contact Information", cn: "门户网站联络信息" },
+  "settings.contactDesc": { th: "ข้อมูลเหล่านี้จะนำไปแสดงผลบนหน้า Portal สาธารณะ เช่น ส่วนท้ายเว็บไซต์ (Footer) และหน้าแรก (Hero Section)", en: "This information will be displayed on the public portal (e.g. website footer and hero section).", cn: "此信息将展示在公开门户网站的页尾（Footer）及首页（Hero Section）中。" },
+  "settings.addressTh": { th: "ที่อยู่ / อาคารที่ตั้ง (ภาษาไทย)", en: "Address (Thai)", cn: "办公地址（泰文）" },
+  "settings.addressEn": { th: "ที่อยู่ / อาคารที่ตั้ง (ภาษาอังกฤษ)", en: "Address (English)", cn: "办公地址（英文）" },
+  "settings.phone": { th: "เบอร์โทรศัพท์ติดต่อ", en: "Contact Phone Number", cn: "联系电话" },
+  "settings.email": { th: "อีเมลติดต่อส่วนกลาง", en: "General Contact Email", cn: "机构电子邮箱" },
+  "settings.officeHoursTh": { th: "เวลาทำการ (ภาษาไทย)", en: "Office Hours (Thai)", cn: "办公时间（泰文）" },
+  "settings.officeHoursEn": { th: "เวลาทำการ (ภาษาอังกฤษ)", en: "Office Hours (English)", cn: "办公时间（英文）" },
+  "settings.mapUrl": { th: "ลิงก์แผนที่ Google Maps", en: "Google Maps URL", cn: "谷歌地图链接" },
+  "settings.facebookUrl": { th: "Facebook Page URL", en: "Facebook Page URL", cn: "Facebook 主页链接" },
+  "settings.websiteUrl": { th: "เว็บไซต์ทางการ / ลิงก์ภายนอก", en: "Official Website URL", cn: "官方网站链接" },
   // me
   "me.title": { th: "โปรไฟล์ของฉัน", en: "My profile", cn: "个人信息" },
   "me.avatar": { th: "รูปภาพโปรไฟล์", en: "Profile Picture", cn: "个人头像" },

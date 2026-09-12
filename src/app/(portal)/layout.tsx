@@ -77,23 +77,36 @@ export default async function PortalLayout({
       <main className="flex-1">{children}</main>
 
       {/* Footer */}
-      <PortalFooter
-        orgName={orgName}
-        tagline={t("portal.facultyTagline")}
-        logoUrl={tenantSettings?.logoUrl}
-        programsLabel={t("portal.programs")}
-        contactLabel={t("portal.contact")}
-        quickLinksLabel={t("portal.footerQuickLinks")}
-        hoursLabel={t("portal.footerHours")}
-        privacyLabel={t("portal.footerPrivacy")}
-        termsLabel={t("portal.footerTerms")}
-        rightsLabel={t("portal.footerRights")}
-        addressText={t("portal.footerAddress")}
-        phoneText={t("portal.footerPhone")}
-        emailText={t("portal.footerEmail")}
-        programs={programs}
-        quickLinks={quickLinks}
-      />
+      {(() => {
+        const contact = tenantSettings?.contact;
+        const address = (locale === "en" ? (contact?.addressEn || contact?.addressTh) : (contact?.addressTh || contact?.addressEn)) || t("portal.footerAddress");
+        const phone = contact?.phone || t("portal.footerPhone");
+        const email = contact?.email || t("portal.footerEmail");
+        const hours = (locale === "en" ? (contact?.officeHoursEn || contact?.officeHoursTh) : (contact?.officeHoursTh || contact?.officeHoursEn)) || t("portal.footerHours");
+
+        return (
+          <PortalFooter
+            orgName={orgName}
+            tagline={t("portal.facultyTagline")}
+            logoUrl={tenantSettings?.logoUrl}
+            programsLabel={t("portal.programs")}
+            contactLabel={t("portal.contact")}
+            quickLinksLabel={t("portal.footerQuickLinks")}
+            hoursLabel={hours}
+            privacyLabel={t("portal.footerPrivacy")}
+            termsLabel={t("portal.footerTerms")}
+            rightsLabel={t("portal.footerRights")}
+            addressText={address}
+            phoneText={phone}
+            emailText={email}
+            mapUrl={contact?.mapUrl}
+            facebookUrl={contact?.facebookUrl}
+            websiteUrl={contact?.websiteUrl}
+            programs={programs}
+            quickLinks={quickLinks}
+          />
+        );
+      })()}
     </div>
   );
 }

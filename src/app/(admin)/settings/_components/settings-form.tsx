@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { LiyonCard, LiyonField, LiyonSelect, LiyonSwitchRow, PalettePicker } from "@/shared/components/liyon";
 import { useT } from "@/shared/lib/i18n/client";
 import type { PaletteId } from "@/shared/lib/palette";
-import type { TenantSettings, SmtpConfig } from "@/features/identity";
+import type { TenantSettings, SmtpConfig, ContactConfig } from "@/features/identity";
 import { updateSettingsAction, uploadLogoAction, testSmtpAction } from "@/features/identity/actions";
 
 const defaultSmtp: SmtpConfig = {
@@ -22,6 +22,18 @@ const defaultSmtp: SmtpConfig = {
   fromEmail: "",
 };
 
+const defaultContact: ContactConfig = {
+  addressTh: "",
+  addressEn: "",
+  phone: "",
+  email: "",
+  officeHoursTh: "",
+  officeHoursEn: "",
+  mapUrl: "",
+  facebookUrl: "",
+  websiteUrl: "",
+};
+
 export function SettingsForm({ initial }: { initial: TenantSettings }) {
   const t = useT();
   const router = useRouter();
@@ -32,6 +44,7 @@ export function SettingsForm({ initial }: { initial: TenantSettings }) {
     logoUrl: initial.logoUrl ?? "",
     palette: initial.palette as PaletteId,
     smtp: (initial.smtp ? { ...defaultSmtp, ...initial.smtp } : defaultSmtp) as SmtpConfig,
+    contact: (initial.contact ? { ...defaultContact, ...initial.contact } : defaultContact) as ContactConfig,
   });
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [pending, start] = useTransition();
@@ -84,6 +97,13 @@ export function SettingsForm({ initial }: { initial: TenantSettings }) {
       }
       return { ...prev, smtp: updatedSmtp };
     });
+  }
+
+  function updateContact<K extends keyof ContactConfig>(key: K, value: ContactConfig[K]) {
+    setForm((prev) => ({
+      ...prev,
+      contact: { ...prev.contact, [key]: value },
+    }));
   }
 
   async function handleTestSmtp() {
@@ -414,6 +434,105 @@ export function SettingsForm({ initial }: { initial: TenantSettings }) {
                 </div>
               </div>
             )}
+          </div>
+        </LiyonCard>
+
+        <LiyonCard>
+          <h2>{t("settings.contactTitle")}</h2>
+          <p className="text-sm text-muted-foreground mb-4">{t("settings.contactDesc")}</p>
+          <div className="fields">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <LiyonField label={t("settings.addressTh")} htmlFor="s-address-th" error={errors["contact.addressTh"]?.[0]}>
+                <input
+                  id="s-address-th"
+                  type="text"
+                  placeholder="เช่น อาคารคณะการจัดการและเทคโนโลยีสารสนเทศ"
+                  value={form.contact.addressTh || ""}
+                  onChange={(e) => updateContact("addressTh", e.target.value)}
+                />
+              </LiyonField>
+              <LiyonField label={t("settings.addressEn")} htmlFor="s-address-en" error={errors["contact.addressEn"]?.[0]}>
+                <input
+                  id="s-address-en"
+                  type="text"
+                  placeholder="e.g. Faculty of Management & IT Building"
+                  value={form.contact.addressEn || ""}
+                  onChange={(e) => updateContact("addressEn", e.target.value)}
+                />
+              </LiyonField>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <LiyonField label={t("settings.phone")} htmlFor="s-phone" error={errors["contact.phone"]?.[0]}>
+                <input
+                  id="s-phone"
+                  type="text"
+                  placeholder="เช่น 0-2xxx-xxxx ต่อ 1000-1005"
+                  value={form.contact.phone || ""}
+                  onChange={(e) => updateContact("phone", e.target.value)}
+                />
+              </LiyonField>
+              <LiyonField label={t("settings.email")} htmlFor="s-email" error={errors["contact.email"]?.[0]}>
+                <input
+                  id="s-email"
+                  type="email"
+                  placeholder="เช่น info@faculty.university.ac.th"
+                  value={form.contact.email || ""}
+                  onChange={(e) => updateContact("email", e.target.value)}
+                />
+              </LiyonField>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <LiyonField label={t("settings.officeHoursTh")} htmlFor="s-hours-th" error={errors["contact.officeHoursTh"]?.[0]}>
+                <input
+                  id="s-hours-th"
+                  type="text"
+                  placeholder="เช่น จันทร์ - ศุกร์: 08:30 - 16:30 น."
+                  value={form.contact.officeHoursTh || ""}
+                  onChange={(e) => updateContact("officeHoursTh", e.target.value)}
+                />
+              </LiyonField>
+              <LiyonField label={t("settings.officeHoursEn")} htmlFor="s-hours-en" error={errors["contact.officeHoursEn"]?.[0]}>
+                <input
+                  id="s-hours-en"
+                  type="text"
+                  placeholder="e.g. Mon - Fri: 08:30 AM - 04:30 PM"
+                  value={form.contact.officeHoursEn || ""}
+                  onChange={(e) => updateContact("officeHoursEn", e.target.value)}
+                />
+              </LiyonField>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <LiyonField label={t("settings.mapUrl")} htmlFor="s-map" hint={t("common.optional")}>
+                <input
+                  id="s-map"
+                  type="url"
+                  placeholder="https://maps.google.com/..."
+                  value={form.contact.mapUrl || ""}
+                  onChange={(e) => updateContact("mapUrl", e.target.value)}
+                />
+              </LiyonField>
+              <LiyonField label={t("settings.facebookUrl")} htmlFor="s-fb" hint={t("common.optional")}>
+                <input
+                  id="s-fb"
+                  type="url"
+                  placeholder="https://facebook.com/..."
+                  value={form.contact.facebookUrl || ""}
+                  onChange={(e) => updateContact("facebookUrl", e.target.value)}
+                />
+              </LiyonField>
+              <LiyonField label={t("settings.websiteUrl")} htmlFor="s-web" hint={t("common.optional")}>
+                <input
+                  id="s-web"
+                  type="url"
+                  placeholder="https://fms.university.ac.th"
+                  value={form.contact.websiteUrl || ""}
+                  onChange={(e) => updateContact("websiteUrl", e.target.value)}
+                />
+              </LiyonField>
+            </div>
           </div>
         </LiyonCard>
 
