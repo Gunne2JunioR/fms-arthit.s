@@ -73,11 +73,22 @@ export type LinkUserInput = z.infer<typeof linkUserSchema>;
 export type CreateUserFromPersonnelInput = z.infer<typeof createUserFromPersonnelSchema>;
 export type ChangeStatusInput = z.infer<typeof changeStatusSchema>;
 
+export const departmentStatusEnum = z.enum(["ACTIVE", "INACTIVE", "ARCHIVED"]);
+
 export const createDepartmentSchema = z.object({
+  facultyId: z.string().uuid().optional().nullable().or(z.literal("").transform(() => null)),
+  headStaffId: z.string().uuid().optional().nullable().or(z.literal("").transform(() => null)),
   code: z.string().trim().min(1).max(50),
   nameTh: z.string().trim().min(1).max(255),
   nameEn: z.string().trim().min(1).max(255),
+  shortNameTh: z.string().trim().max(50).optional().nullable(),
+  shortNameEn: z.string().trim().max(50).optional().nullable(),
+  email: z.string().trim().email().max(255).optional().nullable().or(z.literal("").transform(() => null)),
+  phone: z.string().trim().max(50).optional().nullable(),
+  officeLocation: z.string().trim().max(255).optional().nullable(),
   description: z.string().trim().optional().nullable(),
+  status: departmentStatusEnum.default("ACTIVE"),
+  sortOrder: z.coerce.number().int().default(0),
 });
 
 export const updateDepartmentSchema = createDepartmentSchema.extend({
@@ -88,8 +99,10 @@ export const deleteDepartmentSchema = z.object({
   id: z.string().uuid(),
 });
 
+export type DepartmentStatus = z.infer<typeof departmentStatusEnum>;
 export type CreateStaffInput = z.infer<typeof createStaffSchema>;
 export type UpdateStaffInput = z.infer<typeof updateStaffSchema>;
 export type CreateDepartmentInput = z.infer<typeof createDepartmentSchema>;
 export type UpdateDepartmentInput = z.infer<typeof updateDepartmentSchema>;
 export type DeleteDepartmentInput = z.infer<typeof deleteDepartmentSchema>;
+

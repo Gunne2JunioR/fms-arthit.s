@@ -49,12 +49,13 @@ export async function getStaffListAction(filter?: {
   });
 }
 
-export async function getDepartmentsAction(): Promise<ActionResult<DepartmentDto[]>> {
+export async function getDepartmentsAction(facultyId?: string, status?: string): Promise<ActionResult<DepartmentDto[]>> {
   return runAction(async () => {
-    const ctx = await requirePermission(DIRECTORY_P.staffRead);
-    return listDepartments(ctx.tenantId);
+    const ctx = await requirePermission(DIRECTORY_P.departmentRead);
+    return listDepartments(ctx.tenantId, facultyId, status);
   });
 }
+
 
 export async function createStaffAction(input: unknown): Promise<ActionResult<StaffProfileDto>> {
   return runAction(async () => {
@@ -216,6 +217,7 @@ export async function exportPersonnelCsvAction(filter?: {
   });
 }
 
+
 export async function createDepartmentAction(input: unknown): Promise<ActionResult<DepartmentDto>> {
   return runAction(async () => {
     const ctx = await requirePermission(DIRECTORY_P.departmentManage);
@@ -246,15 +248,17 @@ export async function updateDepartmentAction(input: unknown): Promise<ActionResu
   });
 }
 
-export async function deleteDepartmentAction(id: string): Promise<ActionResult<void>> {
+export async function deleteDepartmentAction(id: string): Promise<ActionResult<{ department: DepartmentDto; archived: boolean }>> {
   return runAction(async () => {
     const ctx = await requirePermission(DIRECTORY_P.departmentManage);
     const ip = await getClientIp();
-    await deleteDepartment(ctx.tenantId, ctx.userId, id, ip);
+    const result = await deleteDepartment(ctx.tenantId, ctx.userId, id, ip);
     revalidatePath("/admin/departments");
     revalidatePath("/admin/programs");
     revalidatePath("/admin/staff");
     revalidatePath("/programs");
     revalidatePath("/personnel");
+    return result;
   });
 }
+

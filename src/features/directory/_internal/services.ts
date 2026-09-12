@@ -12,10 +12,24 @@ import type {
 export interface DepartmentDto {
   id: string;
   tenantId: string;
+  facultyId?: string | null;
+  facultyNameTh?: string | null;
+  facultyNameEn?: string | null;
+  facultyCode?: string | null;
+  headStaffId?: string | null;
+  headStaffNameTh?: string | null;
+  headStaffNameEn?: string | null;
   code: string;
   nameTh: string;
   nameEn: string;
+  shortNameTh?: string | null;
+  shortNameEn?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  officeLocation?: string | null;
   description?: string | null;
+  status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
+  sortOrder: number;
   programsCount?: number;
   staffCount?: number;
   programs?: {
@@ -85,12 +99,25 @@ export interface StaffProfileDto {
   updatedAt: string;
 }
 
-export async function listDepartments(tenantId?: string): Promise<DepartmentDto[]> {
-  const where = tenantId?.trim() ? { tenantId } : {};
+export async function listDepartments(
+  tenantId?: string,
+  facultyId?: string,
+  status?: string,
+): Promise<DepartmentDto[]> {
+  const where: Prisma.DepartmentWhereInput = {};
+  if (tenantId?.trim()) where.tenantId = tenantId;
+  if (facultyId && facultyId !== "ALL") where.facultyId = facultyId;
+  if (status && status !== "ALL") where.status = status as "ACTIVE" | "INACTIVE" | "ARCHIVED";
+
   const depts = await prisma.department.findMany({
     where,
-    orderBy: { code: "asc" },
+    orderBy: [
+      { sortOrder: "asc" },
+      { code: "asc" },
+    ],
     include: {
+      faculty: { select: { id: true, code: true, nameTh: true, nameEn: true } },
+      headStaff: { select: { id: true, firstNameTh: true, lastNameTh: true, firstNameEn: true, lastNameEn: true, prefix: true, academicTitleTh: true, academicTitleEn: true } },
       _count: { select: { programs: true, staffProfiles: true } },
       programs: {
         select: { id: true, code: true, nameTh: true, nameEn: true, degreeLevel: true, status: true },
@@ -98,17 +125,40 @@ export async function listDepartments(tenantId?: string): Promise<DepartmentDto[
       },
     },
   });
-  return depts.map((d) => ({
-    id: d.id,
-    tenantId: d.tenantId,
-    code: d.code,
-    nameTh: d.nameTh,
-    nameEn: d.nameEn,
-    description: d.description,
-    programsCount: d._count.programs,
-    staffCount: d._count.staffProfiles,
-    programs: d.programs,
-  }));
+
+  return depts.map((d) => {
+    const head = d.headStaff;
+    const pTh = head ? (head.prefix || head.academicTitleTh || "") : "";
+    const pEn = head ? (head.prefix || head.academicTitleEn || "") : "";
+    const headNameTh = head ? `${pTh} ${head.firstNameTh} ${head.lastNameTh}`.trim() : null;
+    const headNameEn = head ? `${pEn} ${head.firstNameEn} ${head.lastNameEn}`.trim() : null;
+
+    return {
+      id: d.id,
+      tenantId: d.tenantId,
+      facultyId: d.facultyId,
+      facultyNameTh: d.faculty?.nameTh ?? null,
+      facultyNameEn: d.faculty?.nameEn ?? null,
+      facultyCode: d.faculty?.code ?? null,
+      headStaffId: d.headStaffId,
+      headStaffNameTh: headNameTh,
+      headStaffNameEn: headNameEn,
+      code: d.code,
+      nameTh: d.nameTh,
+      nameEn: d.nameEn,
+      shortNameTh: d.shortNameTh,
+      shortNameEn: d.shortNameEn,
+      email: d.email,
+      phone: d.phone,
+      officeLocation: d.officeLocation,
+      description: d.description,
+      status: d.status,
+      sortOrder: d.sortOrder,
+      programsCount: d._count.programs,
+      staffCount: d._count.staffProfiles,
+      programs: d.programs,
+    };
+  });
 }
 
 type StaffProfileWithRelations = Prisma.StaffProfileGetPayload<{
@@ -545,6 +595,8 @@ export async function getDepartmentById(tenantId: string, id: string): Promise<D
   const d = await prisma.department.findUnique({
     where: { id, tenantId },
     include: {
+      faculty: { select: { id: true, code: true, nameTh: true, nameEn: true } },
+      headStaff: { select: { id: true, firstNameTh: true, lastNameTh: true, firstNameEn: true, lastNameEn: true, prefix: true, academicTitleTh: true, academicTitleEn: true } },
       _count: { select: { programs: true, staffProfiles: true } },
       programs: {
         select: { id: true, code: true, nameTh: true, nameEn: true, degreeLevel: true, status: true },
@@ -553,13 +605,32 @@ export async function getDepartmentById(tenantId: string, id: string): Promise<D
     },
   });
   if (!d) return null;
+
+  const head = d.headStaff;
+  const pTh = head ? (head.prefix || head.academicTitleTh || "") : "";
+  const pEn = head ? (head.prefix || head.academicTitleEn || "") : "";
+
   return {
     id: d.id,
     tenantId: d.tenantId,
+    facultyId: d.facultyId,
+    facultyNameTh: d.faculty?.nameTh ?? null,
+    facultyNameEn: d.faculty?.nameEn ?? null,
+    facultyCode: d.faculty?.code ?? null,
+    headStaffId: d.headStaffId,
+    headStaffNameTh: head ? `${pTh} ${head.firstNameTh} ${head.lastNameTh}`.trim() : null,
+    headStaffNameEn: head ? `${pEn} ${head.firstNameEn} ${head.lastNameEn}`.trim() : null,
     code: d.code,
     nameTh: d.nameTh,
     nameEn: d.nameEn,
+    shortNameTh: d.shortNameTh,
+    shortNameEn: d.shortNameEn,
+    email: d.email,
+    phone: d.phone,
+    officeLocation: d.officeLocation,
     description: d.description,
+    status: d.status,
+    sortOrder: d.sortOrder,
     programsCount: d._count.programs,
     staffCount: d._count.staffProfiles,
     programs: d.programs,
@@ -581,10 +652,25 @@ export async function createDepartment(
   const created = await prisma.department.create({
     data: {
       tenantId,
+      facultyId: input.facultyId || null,
+      headStaffId: input.headStaffId || null,
       code,
       nameTh: input.nameTh.trim(),
       nameEn: input.nameEn.trim(),
+      shortNameTh: input.shortNameTh?.trim() || null,
+      shortNameEn: input.shortNameEn?.trim() || null,
+      email: input.email?.trim() || null,
+      phone: input.phone?.trim() || null,
+      officeLocation: input.officeLocation?.trim() || null,
       description: input.description?.trim() || null,
+      status: input.status,
+      sortOrder: input.sortOrder,
+    },
+    include: {
+      faculty: { select: { id: true, code: true, nameTh: true, nameEn: true } },
+      headStaff: { select: { id: true, firstNameTh: true, lastNameTh: true, firstNameEn: true, lastNameEn: true, prefix: true, academicTitleTh: true, academicTitleEn: true } },
+      _count: { select: { programs: true, staffProfiles: true } },
+      programs: { select: { id: true, code: true, nameTh: true, nameEn: true, degreeLevel: true, status: true } },
     },
   });
 
@@ -598,13 +684,31 @@ export async function createDepartment(
     ip,
   });
 
+  const head = created.headStaff;
+  const pTh = head ? (head.prefix || head.academicTitleTh || "") : "";
+  const pEn = head ? (head.prefix || head.academicTitleEn || "") : "";
+
   return {
     id: created.id,
     tenantId: created.tenantId,
+    facultyId: created.facultyId,
+    facultyNameTh: created.faculty?.nameTh ?? null,
+    facultyNameEn: created.faculty?.nameEn ?? null,
+    facultyCode: created.faculty?.code ?? null,
+    headStaffId: created.headStaffId,
+    headStaffNameTh: head ? `${pTh} ${head.firstNameTh} ${head.lastNameTh}`.trim() : null,
+    headStaffNameEn: head ? `${pEn} ${head.firstNameEn} ${head.lastNameEn}`.trim() : null,
     code: created.code,
     nameTh: created.nameTh,
     nameEn: created.nameEn,
+    shortNameTh: created.shortNameTh,
+    shortNameEn: created.shortNameEn,
+    email: created.email,
+    phone: created.phone,
+    officeLocation: created.officeLocation,
     description: created.description,
+    status: created.status,
+    sortOrder: created.sortOrder,
     programsCount: 0,
     staffCount: 0,
     programs: [],
@@ -632,12 +736,23 @@ export async function updateDepartment(
   const updated = await prisma.department.update({
     where: { id: input.id, tenantId },
     data: {
+      facultyId: input.facultyId !== undefined ? (input.facultyId || null) : current.facultyId,
+      headStaffId: input.headStaffId !== undefined ? (input.headStaffId || null) : current.headStaffId,
       code,
       nameTh: input.nameTh.trim(),
       nameEn: input.nameEn.trim(),
+      shortNameTh: input.shortNameTh !== undefined ? (input.shortNameTh?.trim() || null) : current.shortNameTh,
+      shortNameEn: input.shortNameEn !== undefined ? (input.shortNameEn?.trim() || null) : current.shortNameEn,
+      email: input.email !== undefined ? (input.email?.trim() || null) : current.email,
+      phone: input.phone !== undefined ? (input.phone?.trim() || null) : current.phone,
+      officeLocation: input.officeLocation !== undefined ? (input.officeLocation?.trim() || null) : current.officeLocation,
       description: input.description !== undefined ? (input.description?.trim() || null) : current.description,
+      status: input.status,
+      sortOrder: input.sortOrder,
     },
     include: {
+      faculty: { select: { id: true, code: true, nameTh: true, nameEn: true } },
+      headStaff: { select: { id: true, firstNameTh: true, lastNameTh: true, firstNameEn: true, lastNameEn: true, prefix: true, academicTitleTh: true, academicTitleEn: true } },
       _count: { select: { programs: true, staffProfiles: true } },
       programs: {
         select: { id: true, code: true, nameTh: true, nameEn: true, degreeLevel: true, status: true },
@@ -657,13 +772,31 @@ export async function updateDepartment(
     ip,
   });
 
+  const head = updated.headStaff;
+  const pTh = head ? (head.prefix || head.academicTitleTh || "") : "";
+  const pEn = head ? (head.prefix || head.academicTitleEn || "") : "";
+
   return {
     id: updated.id,
     tenantId: updated.tenantId,
+    facultyId: updated.facultyId,
+    facultyNameTh: updated.faculty?.nameTh ?? null,
+    facultyNameEn: updated.faculty?.nameEn ?? null,
+    facultyCode: updated.faculty?.code ?? null,
+    headStaffId: updated.headStaffId,
+    headStaffNameTh: head ? `${pTh} ${head.firstNameTh} ${head.lastNameTh}`.trim() : null,
+    headStaffNameEn: head ? `${pEn} ${head.firstNameEn} ${head.lastNameEn}`.trim() : null,
     code: updated.code,
     nameTh: updated.nameTh,
     nameEn: updated.nameEn,
+    shortNameTh: updated.shortNameTh,
+    shortNameEn: updated.shortNameEn,
+    email: updated.email,
+    phone: updated.phone,
+    officeLocation: updated.officeLocation,
     description: updated.description,
+    status: updated.status,
+    sortOrder: updated.sortOrder,
     programsCount: updated._count.programs,
     staffCount: updated._count.staffProfiles,
     programs: updated.programs,
@@ -675,16 +808,66 @@ export async function deleteDepartment(
   actorId: string,
   id: string,
   ip?: string | null,
-): Promise<void> {
+): Promise<{ department: DepartmentDto; archived: boolean }> {
   const current = await prisma.department.findUniqueOrThrow({
     where: { id, tenantId },
     include: {
+      faculty: { select: { id: true, code: true, nameTh: true, nameEn: true } },
+      headStaff: { select: { id: true, firstNameTh: true, lastNameTh: true, firstNameEn: true, lastNameEn: true, prefix: true, academicTitleTh: true, academicTitleEn: true } },
       _count: { select: { programs: true, staffProfiles: true } },
+      programs: {
+        select: { id: true, code: true, nameTh: true, nameEn: true, degreeLevel: true, status: true },
+        orderBy: { code: "asc" },
+      },
     },
   });
 
+  const head = current.headStaff;
+  const pTh = head ? (head.prefix || head.academicTitleTh || "") : "";
+  const pEn = head ? (head.prefix || head.academicTitleEn || "") : "";
+  const deptDto: DepartmentDto = {
+    id: current.id,
+    tenantId: current.tenantId,
+    facultyId: current.facultyId,
+    facultyNameTh: current.faculty?.nameTh ?? null,
+    facultyNameEn: current.faculty?.nameEn ?? null,
+    facultyCode: current.faculty?.code ?? null,
+    headStaffId: current.headStaffId,
+    headStaffNameTh: head ? `${pTh} ${head.firstNameTh} ${head.lastNameTh}`.trim() : null,
+    headStaffNameEn: head ? `${pEn} ${head.firstNameEn} ${head.lastNameEn}`.trim() : null,
+    code: current.code,
+    nameTh: current.nameTh,
+    nameEn: current.nameEn,
+    shortNameTh: current.shortNameTh,
+    shortNameEn: current.shortNameEn,
+    email: current.email,
+    phone: current.phone,
+    officeLocation: current.officeLocation,
+    description: current.description,
+    status: current.status,
+    sortOrder: current.sortOrder,
+    programsCount: current._count.programs,
+    staffCount: current._count.staffProfiles,
+    programs: current.programs,
+  };
+
+  // If referenced by programs or staffProfiles, soft delete to ARCHIVED
   if (current._count.programs > 0 || current._count.staffProfiles > 0) {
-    throw errors.conflict("department_has_relations");
+    const updated = await prisma.department.update({
+      where: { id, tenantId },
+      data: { status: "ARCHIVED" },
+    });
+    await writeAudit({
+      tenantId,
+      actorId,
+      action: "department.archive",
+      entity: "department",
+      entityId: id,
+      before: { code: current.code, nameTh: current.nameTh, status: current.status },
+      after: { code: updated.code, nameTh: updated.nameTh, status: updated.status },
+      ip,
+    });
+    return { department: { ...deptDto, status: "ARCHIVED" }, archived: true };
   }
 
   await prisma.department.delete({
@@ -700,4 +883,7 @@ export async function deleteDepartment(
     before: { code: current.code, nameTh: current.nameTh },
     ip,
   });
+
+  return { department: deptDto, archived: false };
 }
+

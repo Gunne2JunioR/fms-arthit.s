@@ -10,6 +10,9 @@ import {
   FileText,
   Globe,
   Contact,
+  BookMarked,
+  Landmark,
+  GitBranch,
   type LucideIcon,
 } from "lucide-react";
 import { hasPermission, P } from "@/features/identity";
@@ -38,9 +41,19 @@ export const sidebarGroups: NavGroup[] = [
     label: "faculty.nav.academic",
     items: [
       { title: "news.title", href: "/admin/news", icon: Newspaper, permission: NEWS_P.newsRead },
-      { title: "department.title", href: "/admin/departments", icon: Layers, permission: DIRECTORY_P.departmentRead },
       { title: "directory.title", href: "/admin/staff", icon: UserSquare2, permission: DIRECTORY_P.staffRead },
-      { title: "curriculum.title", href: "/admin/programs", icon: GraduationCap, permission: CURRICULUM_P.curriculumRead },
+      {
+        title: "curriculum.title",
+        href: "/admin/programs",
+        icon: GraduationCap,
+        permission: CURRICULUM_P.curriculumRead,
+        children: [
+          { title: "curriculum.nav.overview", href: "/admin/programs/overview", icon: LayoutDashboard, permission: CURRICULUM_P.curriculumRead },
+          { title: "curriculum.nav.programs", href: "/admin/programs", icon: BookMarked, permission: CURRICULUM_P.curriculumRead },
+          { title: "curriculum.nav.faculties", href: "/admin/faculties", icon: Landmark, permission: CURRICULUM_P.curriculumRead },
+          { title: "curriculum.nav.departments", href: "/admin/departments", icon: GitBranch, permission: DIRECTORY_P.departmentRead },
+        ],
+      },
     ],
   },
   {

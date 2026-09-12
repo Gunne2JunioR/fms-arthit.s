@@ -38,6 +38,7 @@ model Tenant {
   sampleItems SampleItem[]
   articleCategories ArticleCategory[]
   articles          Article[]
+  faculties         Faculty[]
   departments       Department[]
   staffProfiles     StaffProfile[]
   programs          Program[]
@@ -300,22 +301,71 @@ enum EmploymentStatus {
   ARCHIVED
 }
 
+enum AcademicStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+model Faculty {
+  id               String         @id @default(uuid()) @db.Uuid
+  tenantId         String         @map("tenant_id") @db.Uuid
+  code             String         @db.VarChar(50)
+  nameTh           String         @map("name_th") @db.VarChar(255)
+  nameEn           String         @map("name_en") @db.VarChar(255)
+  shortNameTh      String?        @map("short_name_th") @db.VarChar(50)
+  shortNameEn      String?        @map("short_name_en") @db.VarChar(50)
+  deanStaffId      String?        @map("dean_staff_id") @db.Uuid
+  email            String?        @db.VarChar(255)
+  phone            String?        @db.VarChar(50)
+  website          String?        @db.VarChar(255)
+  buildingLocation String?        @map("building_location") @db.VarChar(255)
+  description      String?        @db.Text
+  logoUrl          String?        @map("logo_url") @db.VarChar(500)
+  status           AcademicStatus @default(ACTIVE)
+  sortOrder        Int            @default(0) @map("sort_order")
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
+
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deanStaff   StaffProfile? @relation("FacultyDean", fields: [deanStaffId], references: [id], onDelete: SetNull)
+  departments Department[]
+  programs    Program[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@index([tenantId, sortOrder])
+  @@map("faculties")
+}
+
 model Department {
-  id          String   @id @default(uuid()) @db.Uuid
-  tenantId    String   @map("tenant_id") @db.Uuid
-  code        String   @db.VarChar(50)
-  nameTh      String   @map("name_th") @db.VarChar(255)
-  nameEn      String   @map("name_en") @db.VarChar(255)
-  description String?  @db.Text
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  id             String         @id @default(uuid()) @db.Uuid
+  tenantId       String         @map("tenant_id") @db.Uuid
+  facultyId      String?        @map("faculty_id") @db.Uuid
+  headStaffId    String?        @map("head_staff_id") @db.Uuid
+  code           String         @db.VarChar(50)
+  nameTh         String         @map("name_th") @db.VarChar(255)
+  nameEn         String         @map("name_en") @db.VarChar(255)
+  shortNameTh    String?        @map("short_name_th") @db.VarChar(50)
+  shortNameEn    String?        @map("short_name_en") @db.VarChar(50)
+  email          String?        @db.VarChar(255)
+  phone          String?        @db.VarChar(50)
+  officeLocation String?        @map("office_location") @db.VarChar(255)
+  description    String?        @db.Text
+  status         AcademicStatus @default(ACTIVE)
+  sortOrder      Int            @default(0) @map("sort_order")
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
 
   tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  faculty       Faculty?       @relation(fields: [facultyId], references: [id], onDelete: Restrict)
+  headStaff     StaffProfile?  @relation("DepartmentHead", fields: [headStaffId], references: [id], onDelete: SetNull)
   staffProfiles StaffProfile[]
   programs      Program[]
 
   @@unique([tenantId, code])
-  @@index([tenantId])
+  @@index([tenantId, facultyId])
+  @@index([tenantId, status])
   @@map("departments")
 }
 
@@ -362,9 +412,11 @@ model StaffProfile {
   createdAt           DateTime          @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt           DateTime          @updatedAt @map("updated_at") @db.Timestamptz()
 
-  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  department Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
-  user       User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tenant            Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  department        Department    @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  user              User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  deanOfFaculties   Faculty[]     @relation("FacultyDean")
+  headOfDepartments Department[]  @relation("DepartmentHead")
 
   @@unique([tenantId, personnelCode])
   @@index([tenantId, departmentId])
@@ -386,34 +438,46 @@ enum ProgramStatus {
   ACTIVE
   REVISED
   CLOSED
+  ARCHIVED
 }
 
 model Program {
-  id                 String             @id @default(uuid()) @db.Uuid
-  tenantId           String             @map("tenant_id") @db.Uuid
-  departmentId       String?            @map("department_id") @db.Uuid
-  code               String             @db.VarChar(50)
-  nameTh             String             @map("name_th") @db.VarChar(255)
-  nameEn             String             @map("name_en") @db.VarChar(255)
-  degreeLevel        ProgramDegreeLevel @default(BACHELOR) @map("degree_level")
-  degreeNameTh       String             @map("degree_name_th") @db.VarChar(255)
-  degreeNameEn       String             @map("degree_name_en") @db.VarChar(255)
-  curriculumYear     Int                @map("curriculum_year")
-  totalCredits       Int                @map("total_credits")
-  tuitionFeeSemester Decimal            @default(0) @map("tuition_fee_semester") @db.Decimal(10, 2)
-  durationYears      Int                @default(4) @map("duration_years")
-  brochureFileUrl    String?            @map("brochure_file_url") @db.VarChar(500)
-  description        String?            @db.Text
-  programStructure   Json               @default("[]") @db.JsonB
-  status             ProgramStatus      @default(ACTIVE)
-  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz()
+  id                  String             @id @default(uuid()) @db.Uuid
+  tenantId            String             @map("tenant_id") @db.Uuid
+  facultyId           String?            @map("faculty_id") @db.Uuid
+  departmentId        String?            @map("department_id") @db.Uuid
+  code                String             @db.VarChar(50)
+  nameTh              String             @map("name_th") @db.VarChar(255)
+  nameEn              String             @map("name_en") @db.VarChar(255)
+  degreeLevel         ProgramDegreeLevel @default(BACHELOR) @map("degree_level")
+  degreeNameTh        String             @map("degree_name_th") @db.VarChar(255)
+  degreeNameEn        String             @map("degree_name_en") @db.VarChar(255)
+  degreeShortTh       String?            @map("degree_short_th") @db.VarChar(100)
+  degreeShortEn       String?            @map("degree_short_en") @db.VarChar(100)
+  programType         String?            @map("program_type") @db.VarChar(50)
+  majorName           String?            @map("major_name") @db.VarChar(255)
+  curriculumYear      Int                @map("curriculum_year")
+  startAcademicYear   Int?               @map("start_academic_year")
+  studyFormat         String?            @map("study_format") @db.VarChar(50)
+  instructionLanguage String?            @map("instruction_language") @db.VarChar(50)
+  totalCredits        Int                @map("total_credits")
+  tuitionFeeSemester  Decimal            @default(0) @map("tuition_fee_semester") @db.Decimal(10, 2)
+  durationYears       Int                @default(4) @map("duration_years")
+  brochureFileUrl     String?            @map("brochure_file_url") @db.VarChar(500)
+  description         String?            @db.Text
+  programStructure    Json               @default("[]") @db.JsonB
+  programDirectorIds  Json               @default("[]") @map("program_director_ids") @db.JsonB
+  status              ProgramStatus      @default(ACTIVE)
+  createdAt           DateTime           @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt           DateTime           @updatedAt @map("updated_at") @db.Timestamptz()
 
   tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  faculty    Faculty?    @relation(fields: [facultyId], references: [id], onDelete: Restrict)
   department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
   @@unique([tenantId, code])
   @@index([tenantId, degreeLevel])
+  @@index([tenantId, facultyId])
   @@index([tenantId, departmentId])
   @@map("programs")
 }

@@ -124,7 +124,7 @@ export default async function PersonnelPage({ searchParams }: Props) {
                     ความเชี่ยวชาญ:
                   </span>
                   <div className="flex flex-wrap gap-1">
-                    {s.expertise.map((exp, idx) => (
+                    {s.expertise.map((exp: string, idx: number) => (
                       <span
                         key={idx}
                         className="text-[11px] bg-primary/10 text-primary px-2 py-0.5 rounded-full"
