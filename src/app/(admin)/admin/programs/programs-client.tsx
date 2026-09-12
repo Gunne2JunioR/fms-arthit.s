@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useRef, useTransition } from "react";
 import {
   GraduationCap,
   Plus,
@@ -93,6 +93,7 @@ export function ProgramsClient({
   const [formDescription, setFormDescription] = useState("");
   const [formDirectors, setFormDirectors] = useState<string[]>([]);
   const [formStatus, setFormStatus] = useState<ProgramDto["status"]>("ACTIVE");
+  const jsonFileInputRef = useRef<HTMLInputElement>(null);
 
   const refreshList = async () => {
     const res = await getProgramsAction(
@@ -307,6 +308,176 @@ export function ProgramsClient({
     a.click();
     URL.revokeObjectURL(url);
     toast.success("ส่งออกข้อมูล CSV สำเร็จ");
+  };
+
+  const handleExportJson = () => {
+    const currentFaculty = faculties.find((f) => f.id === formFacultyId);
+    const currentDept = departments.find((d) => d.id === formDepartmentId);
+
+    const exportData = {
+      $schema: "fms:curriculum-program:v1",
+      code: formCode,
+      nameTh: formNameTh,
+      nameEn: formNameEn,
+      degreeLevel: formDegreeLevel,
+      degreeNameTh: formDegreeNameTh,
+      degreeNameEn: formDegreeNameEn,
+      degreeShortTh: formDegreeShortTh || null,
+      degreeShortEn: formDegreeShortEn || null,
+      programType: formProgramType || "regular",
+      majorName: formMajorName || null,
+      curriculumYear: Number(formCurriculumYear),
+      startAcademicYear: Number(formStartAcademicYear) || Number(formCurriculumYear),
+      studyFormat: formStudyFormat || "onsite",
+      instructionLanguage: formInstructionLanguage || "th",
+      totalCredits: Number(formTotalCredits),
+      tuitionFeeSemester: Number(formTuition),
+      durationYears: Number(formDurationYears),
+      brochureFileUrl: formBrochureUrl || null,
+      description: formDescription || null,
+      status: formStatus,
+      facultyId: formFacultyId || null,
+      facultyCode: currentFaculty?.code || null,
+      facultyNameTh: currentFaculty?.nameTh || null,
+      facultyNameEn: currentFaculty?.nameEn || null,
+      departmentId: formDepartmentId || null,
+      departmentCode: currentDept?.code || null,
+      departmentNameTh: currentDept?.nameTh || null,
+      departmentNameEn: currentDept?.nameEn || null,
+      programDirectorIds: formDirectors,
+    };
+
+    const jsonStr = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const safeCode = (formCode || "program").toLowerCase().replace(/[^a-z0-9_-]/g, "_");
+    a.download = `program-${safeCode}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(t("curriculum.exportJsonSuccess"));
+  };
+
+  const handleImportJson = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        const data = JSON.parse(text);
+
+        if (!data || typeof data !== "object") {
+          throw new Error("Invalid format");
+        }
+
+        if (!data.code && !data.nameTh && !data.nameEn) {
+          throw new Error("Missing required program identifiers");
+        }
+
+        if (data.code !== undefined) setFormCode(String(data.code));
+        if (data.nameTh !== undefined) setFormNameTh(String(data.nameTh));
+        if (data.nameEn !== undefined) setFormNameEn(String(data.nameEn));
+        if (
+          data.degreeLevel &&
+          ["BACHELOR", "MASTER", "DOCTORAL", "DIPLOMA"].includes(data.degreeLevel)
+        ) {
+          setFormDegreeLevel(data.degreeLevel);
+        }
+        if (data.degreeNameTh !== undefined) setFormDegreeNameTh(String(data.degreeNameTh));
+        if (data.degreeNameEn !== undefined) setFormDegreeNameEn(String(data.degreeNameEn));
+        if (data.degreeShortTh !== undefined) setFormDegreeShortTh(data.degreeShortTh || "");
+        if (data.degreeShortEn !== undefined) setFormDegreeShortEn(data.degreeShortEn || "");
+        if (data.programType !== undefined) setFormProgramType(String(data.programType));
+        if (data.majorName !== undefined) setFormMajorName(data.majorName || "");
+        if (data.curriculumYear !== undefined && !isNaN(Number(data.curriculumYear))) {
+          setFormCurriculumYear(Number(data.curriculumYear));
+        }
+        if (data.startAcademicYear !== undefined && !isNaN(Number(data.startAcademicYear))) {
+          setFormStartAcademicYear(Number(data.startAcademicYear));
+        }
+        if (data.studyFormat !== undefined) setFormStudyFormat(String(data.studyFormat));
+        if (data.instructionLanguage !== undefined) {
+          setFormInstructionLanguage(String(data.instructionLanguage));
+        }
+        if (data.totalCredits !== undefined && !isNaN(Number(data.totalCredits))) {
+          setFormTotalCredits(Number(data.totalCredits));
+        }
+        if (
+          (data.tuitionFeeSemester !== undefined || data.tuition !== undefined) &&
+          !isNaN(Number(data.tuitionFeeSemester ?? data.tuition))
+        ) {
+          setFormTuition(Number(data.tuitionFeeSemester ?? data.tuition));
+        }
+        if (data.durationYears !== undefined && !isNaN(Number(data.durationYears))) {
+          setFormDurationYears(Number(data.durationYears));
+        }
+        if (data.brochureFileUrl !== undefined || data.brochureUrl !== undefined) {
+          setFormBrochureUrl(data.brochureFileUrl || data.brochureUrl || "");
+        }
+        if (data.description !== undefined) setFormDescription(data.description || "");
+        if (
+          data.status &&
+          ["OPEN_ADMISSION", "ACTIVE", "REVISED", "CLOSED", "ARCHIVED"].includes(data.status)
+        ) {
+          setFormStatus(data.status);
+        }
+
+        // Faculty matching: ID or Code or Name
+        const facId = data.facultyId || data.faculty?.id;
+        const facCode = data.facultyCode || data.faculty?.code;
+        const facName = data.facultyNameTh || data.faculty?.nameTh;
+        const matchedFac = faculties.find(
+          (f) =>
+            (facId && f.id === facId) ||
+            (facCode && f.code.toLowerCase() === String(facCode).toLowerCase()) ||
+            (facName && (f.nameTh === facName || f.nameEn === facName))
+        );
+        if (matchedFac) {
+          setFormFacultyId(matchedFac.id);
+        }
+
+        // Department matching: ID or Code or Name
+        const deptId = data.departmentId || data.department?.id;
+        const deptCode = data.departmentCode || data.department?.code;
+        const deptName = data.departmentNameTh || data.department?.nameTh;
+        const matchedDept = departments.find(
+          (d) =>
+            (deptId && d.id === deptId) ||
+            (deptCode && d.code.toLowerCase() === String(deptCode).toLowerCase()) ||
+            (deptName && (d.nameTh === deptName || d.nameEn === deptName))
+        );
+        if (matchedDept) {
+          setFormDepartmentId(matchedDept.id);
+        }
+
+        // Directors matching
+        if (Array.isArray(data.programDirectorIds)) {
+          setFormDirectors(data.programDirectorIds.map(String));
+        } else if (Array.isArray(data.directors)) {
+          const ids = data.directors
+            .map((d: unknown) =>
+              typeof d === "string"
+                ? d
+                : typeof d === "object" && d !== null && "id" in d
+                  ? String((d as { id: unknown }).id)
+                  : ""
+            )
+            .filter(Boolean);
+          if (ids.length > 0) setFormDirectors(ids);
+        }
+
+        toast.success(t("curriculum.importJsonSuccess"));
+      } catch (err) {
+        console.error("Failed to parse program JSON:", err);
+        toast.error(t("curriculum.importJsonError"));
+      } finally {
+        e.target.value = "";
+      }
+    };
+    reader.readAsText(file);
   };
 
   const filteredPrograms = programs.filter((p) => {
@@ -636,7 +807,7 @@ export function ProgramsClient({
       </LiyonCard>
 
       {/* Program Create / Edit Modal (Tabbed Form) */}
-      <LiyonDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <LiyonDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} wide>
         <LiyonDialogHeader
           title={
             <div className="flex items-center gap-2">
@@ -648,41 +819,75 @@ export function ProgramsClient({
           }
         />
 
-        {/* Tab Navigation */}
-        <div className="flex border-b px-6 gap-6 text-sm font-medium">
-          <button
-            type="button"
-            className={`py-3 border-b-2 transition-colors ${
-              formTab === "basic"
-                ? "border-primary text-primary font-semibold"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setFormTab("basic")}
-          >
-            1. {t("curriculum.tabBasic")}
-          </button>
-          <button
-            type="button"
-            className={`py-3 border-b-2 transition-colors ${
-              formTab === "affiliation"
-                ? "border-primary text-primary font-semibold"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setFormTab("affiliation")}
-          >
-            2. {t("curriculum.tabAffiliation")}
-          </button>
-          <button
-            type="button"
-            className={`py-3 border-b-2 transition-colors ${
-              formTab === "details"
-                ? "border-primary text-primary font-semibold"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setFormTab("details")}
-          >
-            3. {t("curriculum.tabDetails")}
-          </button>
+        {/* Tab Navigation & JSON Action Buttons */}
+        <div className="flex flex-wrap items-center justify-between border-b px-6 text-sm font-medium gap-2">
+          <div className="flex gap-4 sm:gap-6">
+            <button
+              type="button"
+              className={`py-3 border-b-2 transition-colors ${
+                formTab === "basic"
+                  ? "border-primary text-primary font-semibold"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setFormTab("basic")}
+            >
+              1. {t("curriculum.tabBasic")}
+            </button>
+            <button
+              type="button"
+              className={`py-3 border-b-2 transition-colors ${
+                formTab === "affiliation"
+                  ? "border-primary text-primary font-semibold"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setFormTab("affiliation")}
+            >
+              2. {t("curriculum.tabAffiliation")}
+            </button>
+            <button
+              type="button"
+              className={`py-3 border-b-2 transition-colors ${
+                formTab === "details"
+                  ? "border-primary text-primary font-semibold"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setFormTab("details")}
+            >
+              3. {t("curriculum.tabDetails")}
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 py-1.5">
+            <input
+              type="file"
+              ref={jsonFileInputRef}
+              onChange={handleImportJson}
+              accept=".json,application/json"
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleExportJson}
+              className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-primary hover:border-primary/50"
+              title={t("curriculum.exportJson")}
+            >
+              <Download className="h-3.5 w-3.5 text-primary" />
+              <span>{t("curriculum.exportJson")}</span>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => jsonFileInputRef.current?.click()}
+              className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-primary hover:border-primary/50"
+              title={t("curriculum.importJson")}
+            >
+              <Upload className="h-3.5 w-3.5 text-primary" />
+              <span>{t("curriculum.importJson")}</span>
+            </Button>
+          </div>
         </div>
 
         <LiyonDialogBody className="space-y-4 max-h-[70vh] overflow-y-auto pt-4">

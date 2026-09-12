@@ -88,6 +88,11 @@ export const MESSAGES: Dictionary = {
   "curriculum.deleteConfirm": { th: "คุณต้องการลบหลักสูตรนี้ใช่หรือไม่? การดำเนินการนี้จะลบข้อมูลหลักสูตรออกจากระบบอย่างถาวร", en: "Are you sure you want to delete this program? This action will permanently remove it from the system.", cn: "确定要删除此课程吗？此操作将从系统中永久删除该课程。" },
   "curriculum.save": { th: "บันทึก", en: "Save", cn: "保存" },
   "curriculum.cancel": { th: "ยกเลิก", en: "Cancel", cn: "取消" },
+  "curriculum.exportJson": { th: "ส่งออก JSON", en: "Export JSON", cn: "导出 JSON" },
+  "curriculum.importJson": { th: "นำเข้า JSON", en: "Import JSON", cn: "导入 JSON" },
+  "curriculum.exportJsonSuccess": { th: "ส่งออกข้อมูลหลักสูตรเป็น JSON สำเร็จ", en: "Exported program to JSON successfully", cn: "成功导出课程为 JSON" },
+  "curriculum.importJsonSuccess": { th: "นำเข้าข้อมูลหลักสูตรจากไฟล์ JSON เรียบร้อยแล้ว", en: "Program imported from JSON successfully", cn: "从 JSON 导入课程数据成功" },
+  "curriculum.importJsonError": { th: "ไฟล์ JSON ไม่ถูกต้อง หรือโครงสร้างข้อมูลไม่สมบูรณ์", en: "Invalid JSON file or incompatible schema", cn: "JSON 文件无效或数据不完整" },
 
   // Faculty Management Module (/admin/faculties)
   "faculty.title": { th: "จัดการคณะ", en: "Faculty Management", cn: "学院管理" },

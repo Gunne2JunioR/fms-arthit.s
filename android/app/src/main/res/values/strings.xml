@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">FMS Academic</string>
+    <string name="title_activity_main">FMS Academic</string>
+    <string name="package_name">com.fms.app</string>
+    <string name="custom_url_scheme">com.fms.app</string>
+</resources>

@@ -23,9 +23,14 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:bootstrap": "tsx prisma/bootstrap.ts",
     "sync:liyon": "tsx scripts/sync-liyon-theme.ts",
+    "cap:sync": "cap sync android",
+    "cap:copy": "cap copy android",
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@capacitor/android": "8.5.2",
+    "@capacitor/cli": "8.5.2",
+    "@capacitor/core": "8.5.2",
     "@prisma/adapter-pg": "6.19.3",
     "@prisma/client": "6.19.3",
     "bcryptjs": "3.0.3",
