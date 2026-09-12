@@ -25,7 +25,6 @@ import {
   LiyonDialogFooter,
   LiyonField,
   LiyonSelect,
-  RowMenuItem,
   type DataTableColumn,
 } from "@/shared/components/liyon";
 import { Button } from "@/components/ui/button";
@@ -329,11 +328,21 @@ export function ProgramsClient({
     {
       key: "code",
       header: t("curriculum.code"),
-      render: (row) => (
-        <span className="font-mono font-semibold text-xs text-primary px-2 py-0.5 rounded bg-primary/10">
-          {row.code}
-        </span>
-      ),
+      render: (row) =>
+        canManage ? (
+          <button
+            type="button"
+            onClick={() => openEditDialog(row)}
+            className="font-mono font-semibold text-xs text-primary px-2 py-0.5 rounded bg-primary/10 hover:bg-primary/20 hover:underline transition-colors cursor-pointer"
+            title={t("curriculum.edit")}
+          >
+            {row.code}
+          </button>
+        ) : (
+          <span className="font-mono font-semibold text-xs text-primary px-2 py-0.5 rounded bg-primary/10">
+            {row.code}
+          </span>
+        ),
     },
     {
       key: "name",
@@ -341,11 +350,22 @@ export function ProgramsClient({
       render: (row) => (
         <div className="space-y-0.5">
           <div className="flex items-center gap-1.5">
-            <span className="font-medium text-foreground leading-tight">
-              {locale === "en" ? row.nameEn : row.nameTh}
-            </span>
+            {canManage ? (
+              <button
+                type="button"
+                onClick={() => openEditDialog(row)}
+                className="font-medium text-foreground leading-tight text-left hover:text-primary hover:underline transition-colors cursor-pointer"
+                title={t("curriculum.edit")}
+              >
+                {locale === "en" ? row.nameEn : row.nameTh}
+              </button>
+            ) : (
+              <span className="font-medium text-foreground leading-tight">
+                {locale === "en" ? row.nameEn : row.nameTh}
+              </span>
+            )}
             {row.degreeShortTh && (
-              <span className="text-[11px] px-1.5 py-0.2 rounded bg-muted text-muted-foreground font-mono">
+              <span className="text-[11px] px-1.5 py-0.2 rounded bg-muted text-muted-foreground font-mono shrink-0">
                 {row.degreeShortTh}
               </span>
             )}
@@ -456,6 +476,40 @@ export function ProgramsClient({
         return <StatusPill tone={conf.tone}>{conf.label}</StatusPill>;
       },
     },
+    ...(canManage
+      ? [
+          {
+            key: "actions",
+            header: t("curriculum.actions"),
+            className:
+              "text-right sticky right-0 bg-background/95 backdrop-blur-md z-10 min-w-[145px] px-3 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.08)] border-l",
+            render: (row: ProgramDto) => (
+              <div className="flex items-center justify-end gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-2.5 text-primary border-primary/20 hover:bg-primary/10 hover:text-primary transition-colors text-xs font-medium"
+                  onClick={() => openEditDialog(row)}
+                  title={t("curriculum.edit")}
+                >
+                  <Pencil className="h-3.5 w-3.5 mr-1" />
+                  {t("curriculum.edit")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-2.5 text-destructive border-destructive/20 hover:bg-destructive/10 hover:text-destructive transition-colors text-xs font-medium"
+                  onClick={() => setDeleteConfirmItem(row)}
+                  title={t("curriculum.delete")}
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                  {t("curriculum.delete")}
+                </Button>
+              </div>
+            ),
+          } as DataTableColumn<ProgramDto>,
+        ]
+      : []),
   ];
 
   return (
@@ -568,24 +622,6 @@ export function ProgramsClient({
                 </LiyonSelect>
               </div>
             </div>
-          }
-          renderRowMenu={
-            canManage
-              ? (row) => (
-                  <>
-                    <RowMenuItem onSelect={() => openEditDialog(row)} icon={<Pencil className="h-4 w-4 mr-2" />}>
-                      {t("curriculum.edit")}
-                    </RowMenuItem>
-                    <RowMenuItem
-                      onSelect={() => setDeleteConfirmItem(row)}
-                      danger
-                      icon={<Trash2 className="h-4 w-4 mr-2" />}
-                    >
-                      {t("curriculum.delete")}
-                    </RowMenuItem>
-                  </>
-                )
-              : undefined
           }
           empty={{
             icon: <GraduationCap className="h-10 w-10 text-muted-foreground/50" />,

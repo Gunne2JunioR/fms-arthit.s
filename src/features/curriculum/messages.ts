@@ -13,6 +13,7 @@ export const MESSAGES: Dictionary = {
   "curriculum.create": { th: "เพิ่มหลักสูตรใหม่", en: "Add Program", cn: "新增课程" },
   "curriculum.edit": { th: "แก้ไขหลักสูตร", en: "Edit Program", cn: "编辑课程" },
   "curriculum.delete": { th: "ลบหลักสูตร", en: "Delete Program", cn: "删除课程" },
+  "curriculum.actions": { th: "จัดการ", en: "Actions", cn: "操作" },
   "curriculum.archiveConfirm": { th: "คุณต้องการลบหรือเก็บถาวรหลักสูตรนี้ใช่หรือไม่?", en: "Are you sure you want to delete or archive this program?", cn: "确定要删除或归档此课程吗？" },
   "curriculum.archivedSuccess": { th: "จัดเก็บหลักสูตรเข้าสู่สถานะเก็บถาวรเรียบร้อยแล้ว", en: "Program archived successfully", cn: "课程已成功归档" },
 
