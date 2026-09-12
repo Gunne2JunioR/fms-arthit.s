@@ -1,6 +1,11 @@
 import { prisma } from "@/shared/lib/infra/prisma";
-import { writeAudit } from "@/features/identity/server";
-import type { CreateArticleInput, UpdateArticleInput, ChangeArticleStatusInput } from "./validations";
+import { writeAudit, getTenantGemini } from "@/features/identity/server";
+import type {
+  CreateArticleInput,
+  UpdateArticleInput,
+  ChangeArticleStatusInput,
+  TranslateArticleInput,
+} from "./validations";
 
 export interface ArticleCategoryDto {
   id: string;
@@ -20,9 +25,12 @@ export interface ArticleDto {
   authorId: string;
   authorName: string;
   title: string;
+  titleEn: string | null;
   slug: string;
   excerpt: string | null;
+  excerptEn: string | null;
   content: string;
+  contentEn: string | null;
   coverImageUrl: string | null;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
   isPinned: boolean;
@@ -30,6 +38,12 @@ export interface ArticleDto {
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TranslateArticleResult {
+  titleEn: string;
+  excerptEn: string;
+  contentEn: string;
 }
 
 function slugify(text: string): string {
@@ -65,7 +79,9 @@ export async function listAdminArticles(
   if (filter?.search) {
     where.OR = [
       { title: { contains: filter.search, mode: "insensitive" } },
+      { titleEn: { contains: filter.search, mode: "insensitive" } },
       { excerpt: { contains: filter.search, mode: "insensitive" } },
+      { excerptEn: { contains: filter.search, mode: "insensitive" } },
     ];
   }
 
@@ -88,9 +104,12 @@ export async function listAdminArticles(
     authorId: a.authorId,
     authorName: a.author.name,
     title: a.title,
+    titleEn: a.titleEn,
     slug: a.slug,
     excerpt: a.excerpt,
+    excerptEn: a.excerptEn,
     content: a.content,
+    contentEn: a.contentEn,
     coverImageUrl: a.coverImageUrl,
     status: a.status as "DRAFT" | "PUBLISHED" | "ARCHIVED",
     isPinned: a.isPinned,
@@ -116,7 +135,9 @@ export async function listPublishedArticles(
   if (filter?.search) {
     where.OR = [
       { title: { contains: filter.search, mode: "insensitive" } },
+      { titleEn: { contains: filter.search, mode: "insensitive" } },
       { excerpt: { contains: filter.search, mode: "insensitive" } },
+      { excerptEn: { contains: filter.search, mode: "insensitive" } },
     ];
   }
 
@@ -140,9 +161,12 @@ export async function listPublishedArticles(
     authorId: a.authorId,
     authorName: a.author.name,
     title: a.title,
+    titleEn: a.titleEn,
     slug: a.slug,
     excerpt: a.excerpt,
+    excerptEn: a.excerptEn,
     content: a.content,
+    contentEn: a.contentEn,
     coverImageUrl: a.coverImageUrl,
     status: a.status as "DRAFT" | "PUBLISHED" | "ARCHIVED",
     isPinned: a.isPinned,
@@ -188,9 +212,12 @@ export async function getArticleBySlug(
     authorId: a.authorId,
     authorName: a.author.name,
     title: a.title,
+    titleEn: a.titleEn,
     slug: a.slug,
     excerpt: a.excerpt,
+    excerptEn: a.excerptEn,
     content: a.content,
+    contentEn: a.contentEn,
     coverImageUrl: a.coverImageUrl,
     status: a.status as "DRAFT" | "PUBLISHED" | "ARCHIVED",
     isPinned: a.isPinned,
@@ -228,9 +255,12 @@ export async function createArticle(
       authorId,
       categoryId: input.categoryId,
       title: input.title,
+      titleEn: input.titleEn ?? null,
       slug: finalSlug,
       excerpt: input.excerpt ?? null,
+      excerptEn: input.excerptEn ?? null,
       content: input.content,
+      contentEn: input.contentEn ?? null,
       coverImageUrl: input.coverImageUrl ?? null,
       status: input.status,
       isPinned: input.isPinned,
@@ -248,7 +278,7 @@ export async function createArticle(
     action: "article.create",
     entity: "article",
     entityId: created.id,
-    after: { title: created.title, slug: created.slug, status: created.status },
+    after: { title: created.title, titleEn: created.titleEn, slug: created.slug, status: created.status },
     ip,
   });
 
@@ -262,9 +292,12 @@ export async function createArticle(
     authorId: created.authorId,
     authorName: created.author.name,
     title: created.title,
+    titleEn: created.titleEn,
     slug: created.slug,
     excerpt: created.excerpt,
+    excerptEn: created.excerptEn,
     content: created.content,
+    contentEn: created.contentEn,
     coverImageUrl: created.coverImageUrl,
     status: created.status as "DRAFT" | "PUBLISHED" | "ARCHIVED",
     isPinned: created.isPinned,
@@ -304,9 +337,12 @@ export async function updateArticle(
     data: {
       categoryId: input.categoryId,
       title: input.title,
+      titleEn: input.titleEn ?? null,
       slug: finalSlug,
       excerpt: input.excerpt ?? null,
+      excerptEn: input.excerptEn ?? null,
       content: input.content,
+      contentEn: input.contentEn ?? null,
       coverImageUrl: input.coverImageUrl ?? null,
       status: input.status,
       isPinned: input.isPinned,
@@ -324,8 +360,8 @@ export async function updateArticle(
     action: "article.update",
     entity: "article",
     entityId: updated.id,
-    before: { title: current.title, status: current.status },
-    after: { title: updated.title, status: updated.status },
+    before: { title: current.title, titleEn: current.titleEn, status: current.status },
+    after: { title: updated.title, titleEn: updated.titleEn, status: updated.status },
     ip,
   });
 
@@ -339,9 +375,12 @@ export async function updateArticle(
     authorId: updated.authorId,
     authorName: updated.author.name,
     title: updated.title,
+    titleEn: updated.titleEn,
     slug: updated.slug,
     excerpt: updated.excerpt,
+    excerptEn: updated.excerptEn,
     content: updated.content,
+    contentEn: updated.contentEn,
     coverImageUrl: updated.coverImageUrl,
     status: updated.status as "DRAFT" | "PUBLISHED" | "ARCHIVED",
     isPinned: updated.isPinned,
@@ -397,9 +436,12 @@ export async function changeArticleStatus(
     authorId: updated.authorId,
     authorName: updated.author.name,
     title: updated.title,
+    titleEn: updated.titleEn,
     slug: updated.slug,
     excerpt: updated.excerpt,
+    excerptEn: updated.excerptEn,
     content: updated.content,
+    contentEn: updated.contentEn,
     coverImageUrl: updated.coverImageUrl,
     status: updated.status as "DRAFT" | "PUBLISHED" | "ARCHIVED",
     isPinned: updated.isPinned,
@@ -433,4 +475,71 @@ export async function deleteArticle(
     before: { title: current.title, slug: current.slug },
     ip,
   });
+}
+
+export async function translateArticleWithGemini(
+  tenantId: string,
+  input: TranslateArticleInput,
+): Promise<TranslateArticleResult> {
+  const geminiConfig = await getTenantGemini(tenantId);
+  if (!geminiConfig?.apiKey) {
+    throw new Error("ยังไม่ได้ตั้งค่า Google Gemini API Key กรุณาไปที่เมนู 'การตั้งค่า' เพื่อใส่ API Key");
+  }
+
+  const model = geminiConfig.model || "gemini-2.5-flash";
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
+    model,
+  )}:generateContent?key=${encodeURIComponent(geminiConfig.apiKey)}`;
+
+  const prompt = `You are a professional bilingual university news translator and public relations editor.
+Translate the following university news article from Thai to professional, polished English suitable for official university communications.
+Maintain paragraph breaks and formatting.
+Respond ONLY with a valid JSON object without markdown fences, matching this structure:
+{
+  "titleEn": "English title here",
+  "excerptEn": "English excerpt (short summary) here",
+  "contentEn": "English full article content here"
+}
+
+Thai Source:
+Title: ${input.titleTh}
+Excerpt: ${input.excerptTh || ""}
+Content:
+${input.contentTh}`;
+
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    const message = errData?.error?.message || `HTTP ${res.status}: ไม่สามารถเรียกใช้ Gemini API ได้`;
+    throw new Error(`Gemini API Error: ${message}`);
+  }
+
+  const data = await res.json().catch(() => ({}));
+  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+  if (!rawText) {
+    throw new Error("ไม่ได้รับผลลัพธ์การแปลจาก Gemini API");
+  }
+
+  try {
+    // Clean potential markdown wrap if any
+    const cleaned = rawText.replace(/^```json\s*/, "").replace(/```$/, "").trim();
+    const parsed = JSON.parse(cleaned) as { titleEn?: string; excerptEn?: string; contentEn?: string };
+    return {
+      titleEn: parsed.titleEn?.trim() || input.titleTh,
+      excerptEn: parsed.excerptEn?.trim() || "",
+      contentEn: parsed.contentEn?.trim() || input.contentTh,
+    };
+  } catch {
+    throw new Error("เกิดข้อผิดพลาดในการประมวลผลข้อความ JSON จาก Gemini");
+  }
 }

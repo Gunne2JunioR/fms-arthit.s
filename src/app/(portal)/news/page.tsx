@@ -131,11 +131,11 @@ export default async function PublicNewsPage({ searchParams }: Props) {
                     </span>
                   </div>
                   <h3 className="font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
-                    {article.title}
+                    {locale === "en" && article.titleEn ? article.titleEn : article.title}
                   </h3>
-                  {article.excerpt && (
+                  {(locale === "en" && article.excerptEn ? article.excerptEn : article.excerpt) && (
                     <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                      {article.excerpt}
+                      {locale === "en" && article.excerptEn ? article.excerptEn : article.excerpt}
                     </p>
                   )}
                 </div>

@@ -15,16 +15,30 @@ export const MESSAGES: Dictionary = {
 
   // Fields
   "news.titleField": { th: "หัวข้อข่าว", en: "Title", cn: "文章标题" },
+  "news.titleFieldTh": { th: "หัวข้อข่าว (ภาษาไทย)", en: "Title (Thai)", cn: "文章标题（泰语）" },
+  "news.titleFieldEn": { th: "หัวข้อข่าว (ภาษาอังกฤษ)", en: "Title (English)", cn: "文章标题（英语）" },
   "news.slugField": { th: "Slug (URL)", en: "Slug (URL)", cn: "URL别名" },
   "news.categoryField": { th: "หมวดหมู่", en: "Category", cn: "分类" },
   "news.excerptField": { th: "สรุปย่อ (สำหรับแสดงในการ์ด)", en: "Excerpt (Card Preview)", cn: "摘要（卡片预览）" },
+  "news.excerptFieldTh": { th: "สรุปย่อ (ภาษาไทย)", en: "Excerpt (Thai)", cn: "摘要（泰语）" },
+  "news.excerptFieldEn": { th: "สรุปย่อ (ภาษาอังกฤษ)", en: "Excerpt (English)", cn: "摘要（英语）" },
   "news.contentField": { th: "เนื้อหาข่าว", en: "Content", cn: "文章内容" },
+  "news.contentFieldTh": { th: "เนื้อหาข่าว (ภาษาไทย)", en: "Content (Thai)", cn: "文章内容（泰语）" },
+  "news.contentFieldEn": { th: "เนื้อหาข่าว (ภาษาอังกฤษ)", en: "Content (English)", cn: "文章内容（英语）" },
   "news.coverImageField": { th: "URL รูปภาพหน้าปก", en: "Cover Image URL", cn: "封面图片地址" },
   "news.statusField": { th: "สถานะ", en: "Status", cn: "状态" },
   "news.pinnedField": { th: "ปักหมุดเป็นข่าวเด่นหน้าแรก", en: "Pin to homepage featured", cn: "置顶到首页推荐" },
   "news.publishedAtField": { th: "วันเวลาที่เผยแพร่", en: "Published Date", cn: "发布时间" },
   "news.viewsField": { th: "ยอดเข้าชม", en: "Views", cn: "浏览量" },
   "news.authorField": { th: "ผู้เขียน", en: "Author", cn: "作者" },
+
+  // AI Translation
+  "news.aiTranslateBtn": { th: "แปลและสร้างภาษาอังกฤษด้วย Gemini AI", en: "Translate to English with Gemini AI", cn: "使用 Gemini AI 翻译为英语" },
+  "news.aiTranslating": { th: "กำลังแปลด้วย Gemini AI...", en: "Translating with Gemini AI...", cn: "正在使用 Gemini AI 翻译..." },
+  "news.aiTranslateSuccess": { th: "แปลภาษาอังกฤษด้วย Gemini AI สำเร็จแล้ว", en: "Successfully translated to English with Gemini AI", cn: "Gemini AI 成功翻译为英语" },
+  "news.aiTranslateMissingKey": { th: "ยังไม่ได้ตั้งค่า Gemini API Key กรุณาไปที่หน้า 'การตั้งค่า'", en: "Gemini API Key is not configured. Please visit Settings.", cn: "尚未配置 Gemini API Key，请前往设置页面。" },
+  "news.tabTh": { th: "ภาษาไทย (TH)", en: "Thai (TH)", cn: "泰语 (TH)" },
+  "news.tabEn": { th: "ภาษาอังกฤษ (EN)", en: "English (EN)", cn: "英语 (EN)" },
 
   // Statuses
   "news.status.draft": { th: "ฉบับร่าง", en: "Draft", cn: "草稿" },

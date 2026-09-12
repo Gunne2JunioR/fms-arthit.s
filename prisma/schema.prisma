@@ -256,9 +256,12 @@ model Article {
   categoryId    String        @map("category_id") @db.Uuid
   authorId      String        @map("author_id") @db.Uuid
   title         String        @db.VarChar(255)
+  titleEn       String?       @map("title_en") @db.VarChar(255)
   slug          String        @db.VarChar(255)
   excerpt       String?       @db.Text
+  excerptEn     String?       @map("excerpt_en") @db.Text
   content       String        @db.Text
+  contentEn     String?       @map("content_en") @db.Text
   coverImageUrl String?       @map("cover_image_url") @db.VarChar(500)
   status        ArticleStatus @default(DRAFT)
   isPinned      Boolean       @default(false) @map("is_pinned")

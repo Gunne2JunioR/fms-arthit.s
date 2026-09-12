@@ -55,21 +55,21 @@ export default async function NewsDetailPage({ params }: Props) {
         </div>
 
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-foreground tracking-tight leading-tight">
-          {article.title}
+          {locale === "en" && article.titleEn ? article.titleEn : article.title}
         </h1>
 
-        {article.excerpt && (
+        {(locale === "en" && article.excerptEn ? article.excerptEn : article.excerpt) && (
           <p className="text-lg text-muted-foreground leading-relaxed font-light">
-            {article.excerpt}
+            {locale === "en" && article.excerptEn ? article.excerptEn : article.excerpt}
           </p>
         )}
       </div>
 
       {/* Feature 5: AI Multilingual Narration & Translation Toolbar */}
       <ArticleToolbar
-        initialTitle={article.title}
-        initialExcerpt={article.excerpt}
-        initialContent={article.content}
+        initialTitle={locale === "en" && article.titleEn ? article.titleEn : article.title}
+        initialExcerpt={locale === "en" && article.excerptEn ? article.excerptEn : article.excerpt}
+        initialContent={locale === "en" && article.contentEn ? article.contentEn : article.content}
         locale={locale as "th" | "en"}
       />
 
@@ -79,7 +79,7 @@ export default async function NewsDetailPage({ params }: Props) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={article.coverImageUrl}
-            alt={article.title}
+            alt={locale === "en" && article.titleEn ? article.titleEn : article.title}
             className="w-full h-full object-cover"
           />
         </div>
@@ -87,7 +87,7 @@ export default async function NewsDetailPage({ params }: Props) {
 
       {/* Body Content */}
       <div className="prose prose-lg dark:prose-invert max-w-none text-foreground text-base sm:text-lg leading-relaxed space-y-4 py-4 whitespace-pre-line">
-        {article.content}
+        {locale === "en" && article.contentEn ? article.contentEn : article.content}
       </div>
 
       {/* Footer / Back */}

@@ -4,7 +4,7 @@ export { requirePermission, hasPermission, permissionScopes } from "./_internal/
 export { P } from "./permissions";
 export { auth, handlers, signIn, signOut, oauthProviderIds, getAvailableGoogleAccounts, type GoogleAccountInfo } from "./_internal/auth";
 export { googleOAuthConfigured } from "@/shared/lib/infra/env";
-export { resolvePalette, getTenantPalette, getTenantSettings, resolveTenantSettings } from "./_internal/services/tenant.service";
+export { resolvePalette, getTenantPalette, getTenantSettings, resolveTenantSettings, getTenantGemini } from "./_internal/services/tenant.service";
 export { getDashboardStats } from "./_internal/services/dashboard.service";
 export { getProfile } from "./_internal/services/profile.service";
 export { writeAudit, type AuditEntry } from "./_internal/audit";

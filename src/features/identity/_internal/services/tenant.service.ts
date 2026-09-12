@@ -3,7 +3,7 @@ import { prisma, type Db } from "@/shared/lib/infra/prisma";
 import { DEFAULT_PALETTE, isPalette, type PaletteId } from "@/shared/lib/palette";
 import { errors } from "@/shared/lib/errors";
 import { writeAudit } from "../audit";
-import type { SmtpConfig, ContactConfig, UpdateSettingsInput } from "../validations/settings";
+import type { SmtpConfig, ContactConfig, GeminiConfig, UpdateSettingsInput } from "../validations/settings";
 
 export interface TenantSettings {
   code: string;
@@ -13,15 +13,17 @@ export interface TenantSettings {
   palette: PaletteId;
   smtp?: SmtpConfig | null;
   contact?: ContactConfig | null;
+  gemini?: GeminiConfig | null;
 }
 
 async function readTenantSettings(tenantId: string, db: Db): Promise<TenantSettings> {
   const t = await db.tenant.findUnique({ where: { id: tenantId } });
   if (!t) throw errors.not_found();
-  const settingsObj = (t.settings as { palette?: unknown; smtp?: unknown; contact?: unknown }) || {};
+  const settingsObj = (t.settings as { palette?: unknown; smtp?: unknown; contact?: unknown; gemini?: unknown }) || {};
   const p = settingsObj.palette;
   const smtp = (settingsObj.smtp as SmtpConfig) || null;
   const contact = (settingsObj.contact as ContactConfig) || null;
+  const gemini = (settingsObj.gemini as GeminiConfig) || null;
   return {
     code: t.code,
     nameTh: t.nameTh,
@@ -30,6 +32,7 @@ async function readTenantSettings(tenantId: string, db: Db): Promise<TenantSetti
     palette: isPalette(p) ? p : DEFAULT_PALETTE,
     smtp,
     contact,
+    gemini,
   };
 }
 
@@ -43,7 +46,22 @@ export async function getTenantSmtp(tenantId: string): Promise<SmtpConfig | null
   return s?.enabled && s.user && s.pass ? s : null;
 }
 
-/** เก็บคีย์อื่น ๆ ใน settings JSON ไว้ทั้งหมด — merge เฉพาะ palette, smtp, และ contact ที่เปลี่ยน ไม่ทับทั้งก้อน */
+export async function getTenantGemini(tenantId: string): Promise<GeminiConfig | null> {
+  const t = await prisma.tenant.findUnique({ where: { id: tenantId }, select: { settings: true } });
+  const g = (t?.settings as { gemini?: GeminiConfig } | null)?.gemini;
+  if (g?.apiKey) return g;
+  // Fallback to process.env.GEMINI_API_KEY if present
+  if (process.env.GEMINI_API_KEY) {
+    return {
+      enabled: true,
+      apiKey: process.env.GEMINI_API_KEY,
+      model: g?.model || "gemini-2.5-flash",
+    };
+  }
+  return null;
+}
+
+/** เก็บคีย์อื่น ๆ ใน settings JSON ไว้ทั้งหมด — merge เฉพาะ palette, smtp, contact, และ gemini ที่เปลี่ยน ไม่ทับทั้งก้อน */
 export async function updateTenantSettings(input: { tenantId: string; actorId: string } & UpdateSettingsInput): Promise<void> {
   await prisma.$transaction(async (tx) => {
     // อ่านผ่าน tx เดียวกัน ไม่ใช่ client กลาง — ไม่งั้นทรานแซกชันนี้กินคอนเนกชันจากพูลเพิ่มอีกเส้นเพื่ออ่าน
@@ -56,6 +74,7 @@ export async function updateTenantSettings(input: { tenantId: string; actorId: s
       palette: input.palette,
       ...(input.smtp !== undefined ? { smtp: input.smtp } : {}),
       ...(input.contact !== undefined ? { contact: input.contact } : {}),
+      ...(input.gemini !== undefined ? { gemini: input.gemini } : {}),
     };
     await tx.tenant.update({
       where: { id: input.tenantId },

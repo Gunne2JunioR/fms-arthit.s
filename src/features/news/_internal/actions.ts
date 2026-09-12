@@ -11,6 +11,7 @@ import {
   createArticleSchema,
   updateArticleSchema,
   changeArticleStatusSchema,
+  translateArticleSchema,
 } from "./validations";
 import {
   listAdminArticles,
@@ -19,8 +20,10 @@ import {
   updateArticle,
   changeArticleStatus,
   deleteArticle,
+  translateArticleWithGemini,
   type ArticleDto,
   type ArticleCategoryDto,
+  type TranslateArticleResult,
 } from "./services";
 
 async function getClientIp(): Promise<string | null> {
@@ -89,5 +92,15 @@ export async function deleteArticleAction(id: string): Promise<ActionResult<void
     await deleteArticle(ctx.tenantId, ctx.userId, id, ip);
     revalidatePath("/news");
     revalidatePath("/");
+  });
+}
+
+export async function translateArticleWithGeminiAction(
+  input: unknown,
+): Promise<ActionResult<TranslateArticleResult>> {
+  return runAction(async () => {
+    const ctx = await requirePermission(NEWS_P.newsCreate);
+    const parsed = translateArticleSchema.parse(input, { error: zodErrorMap(await getLocale()) });
+    return translateArticleWithGemini(ctx.tenantId, parsed);
   });
 }

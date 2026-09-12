@@ -12,6 +12,8 @@ import {
   Newspaper,
   Eye,
   AlertCircle,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useT, useLocale } from "@/shared/lib/i18n/client";
@@ -37,6 +39,7 @@ import {
   updateArticleAction,
   changeArticleStatusAction,
   deleteArticleAction,
+  translateArticleWithGeminiAction,
 } from "@/features/news/actions";
 
 interface Props {
@@ -70,8 +73,10 @@ export function NewsClient({
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<ArticleDto | null>(null);
   const [editingItem, setEditingItem] = useState<ArticleDto | null>(null);
+  const [currentTab, setCurrentTab] = useState<"th" | "en">("th");
+  const [isTranslating, setIsTranslating] = useState(false);
 
-  // Form states
+  // Form states (Thai)
   const [formTitle, setFormTitle] = useState("");
   const [formSlug, setFormSlug] = useState("");
   const [formCategoryId, setFormCategoryId] = useState(categories[0]?.id ?? "");
@@ -81,6 +86,11 @@ export function NewsClient({
   const [formStatus, setFormStatus] = useState<"DRAFT" | "PUBLISHED" | "ARCHIVED">("DRAFT");
   const [formIsPinned, setFormIsPinned] = useState(false);
   const [formPublishedAt, setFormPublishedAt] = useState("");
+
+  // Form states (English)
+  const [formTitleEn, setFormTitleEn] = useState("");
+  const [formExcerptEn, setFormExcerptEn] = useState("");
+  const [formContentEn, setFormContentEn] = useState("");
 
   const refreshArticles = async () => {
     const res = await getAdminArticlesAction({
@@ -101,11 +111,15 @@ export function NewsClient({
 
   const openCreateDialog = () => {
     setEditingItem(null);
+    setCurrentTab("th");
     setFormTitle("");
+    setFormTitleEn("");
     setFormSlug("");
     setFormCategoryId(categories[0]?.id ?? "");
     setFormExcerpt("");
+    setFormExcerptEn("");
     setFormContent("");
+    setFormContentEn("");
     setFormCoverImageUrl("");
     setFormStatus("DRAFT");
     setFormIsPinned(false);
@@ -115,11 +129,15 @@ export function NewsClient({
 
   const openEditDialog = (item: ArticleDto) => {
     setEditingItem(item);
+    setCurrentTab("th");
     setFormTitle(item.title);
+    setFormTitleEn(item.titleEn ?? "");
     setFormSlug(item.slug);
     setFormCategoryId(item.categoryId);
     setFormExcerpt(item.excerpt ?? "");
+    setFormExcerptEn(item.excerptEn ?? "");
     setFormContent(item.content);
+    setFormContentEn(item.contentEn ?? "");
     setFormCoverImageUrl(item.coverImageUrl ?? "");
     setFormStatus(item.status);
     setFormIsPinned(item.isPinned);
@@ -129,6 +147,38 @@ export function NewsClient({
         : new Date().toISOString().slice(0, 16),
     );
     setModalOpen(true);
+  };
+
+  const handleTranslateWithGemini = async () => {
+    if (!formTitle.trim() || !formContent.trim()) {
+      toast.error("กรุณากรอกหัวข้อข่าวและเนื้อหาภาษาไทยก่อนดำเนินการแปลด้วย AI");
+      return;
+    }
+
+    setIsTranslating(true);
+    try {
+      const res = await translateArticleWithGeminiAction({
+        titleTh: formTitle.trim(),
+        excerptTh: formExcerpt.trim() || undefined,
+        contentTh: formContent.trim(),
+      });
+
+      if (res.ok) {
+        setFormTitleEn(res.data.titleEn);
+        setFormExcerptEn(res.data.excerptEn);
+        setFormContentEn(res.data.contentEn);
+        setCurrentTab("en");
+        toast.success(t("news.aiTranslateSuccess"));
+      } else {
+        const msg = res.error?.message || t("news.aiTranslateMissingKey");
+        toast.error(msg);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : t("common.error");
+      toast.error(msg);
+    } finally {
+      setIsTranslating(false);
+    }
   };
 
   const handleSave = () => {
@@ -150,10 +200,13 @@ export function NewsClient({
         const res = await updateArticleAction({
           id: editingItem.id,
           title: formTitle.trim(),
+          titleEn: formTitleEn.trim() || undefined,
           slug: formSlug.trim() || undefined,
           categoryId: formCategoryId,
           excerpt: formExcerpt.trim() || undefined,
+          excerptEn: formExcerptEn.trim() || undefined,
           content: formContent.trim(),
+          contentEn: formContentEn.trim() || undefined,
           coverImageUrl: formCoverImageUrl.trim() || undefined,
           status: formStatus,
           isPinned: formIsPinned,
@@ -169,10 +222,13 @@ export function NewsClient({
       } else {
         const res = await createArticleAction({
           title: formTitle.trim(),
+          titleEn: formTitleEn.trim() || undefined,
           slug: formSlug.trim() || undefined,
           categoryId: formCategoryId,
           excerpt: formExcerpt.trim() || undefined,
+          excerptEn: formExcerptEn.trim() || undefined,
           content: formContent.trim(),
+          contentEn: formContentEn.trim() || undefined,
           coverImageUrl: formCoverImageUrl.trim() || undefined,
           status: formStatus,
           isPinned: formIsPinned,
@@ -229,9 +285,18 @@ export function NewsClient({
                 {t("news.pinnedField")}
               </span>
             )}
-            <span className="font-medium text-foreground line-clamp-2">{row.title}</span>
+            <span className="font-medium text-foreground line-clamp-2">
+              {locale === "en" && row.titleEn ? row.titleEn : row.title}
+            </span>
           </div>
-          <span className="text-xs text-muted-foreground font-mono">/news/{row.slug}</span>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="font-mono">/news/{row.slug}</span>
+            {row.titleEn && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                EN
+              </span>
+            )}
+          </div>
         </div>
       ),
     },
@@ -414,16 +479,61 @@ export function NewsClient({
         />
         <LiyonDialogBody>
           <div className="space-y-4 py-2">
-            <LiyonField label={t("news.titleField")} htmlFor="article-title">
-              <input
-                id="article-title"
-                value={formTitle}
-                onChange={(e) => setFormTitle(e.target.value)}
-                placeholder="เช่น คณะเปิดตัวโครงการนวัตกรรมเทคโนโลยีเพื่อชุมชน"
-                required
-              />
-            </LiyonField>
+            {/* Action Bar with Language Tabs & Gemini AI Translate Button */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-muted/40 border">
+              <div className="flex items-center gap-1.5 p-1 rounded-lg bg-background border">
+                <button
+                  type="button"
+                  onClick={() => setCurrentTab("th")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    currentTab === "th"
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <span>🇹🇭</span>
+                  <span>{t("news.tabTh")}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentTab("en")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                    currentTab === "en"
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <span>🇬🇧</span>
+                  <span>{t("news.tabEn")}</span>
+                  {formTitleEn && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                  )}
+                </button>
+              </div>
 
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isTranslating || !formTitle.trim()}
+                onClick={handleTranslateWithGemini}
+                className="gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary shrink-0"
+              >
+                {isTranslating ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>{t("news.aiTranslating")}</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-amber-500/20" />
+                    <span>{t("news.aiTranslateBtn")}</span>
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Common Category and Status Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <LiyonField label={t("news.categoryField")} htmlFor="article-category">
                 <LiyonSelect
@@ -454,35 +564,99 @@ export function NewsClient({
               </LiyonField>
             </div>
 
+            {/* Language Content Tabs */}
+            {currentTab === "th" ? (
+              <div className="space-y-4 rounded-xl border p-4 bg-muted/10">
+                <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+                  <span>🇹🇭</span>
+                  <span>{t("news.tabTh")}</span>
+                </div>
+
+                <LiyonField label={t("news.titleFieldTh")} htmlFor="article-title">
+                  <input
+                    id="article-title"
+                    value={formTitle}
+                    onChange={(e) => setFormTitle(e.target.value)}
+                    placeholder="เช่น คณะเปิดตัวโครงการนวัตกรรมเทคโนโลยีเพื่อชุมชน"
+                    required
+                  />
+                </LiyonField>
+
+                <LiyonField label={t("news.excerptFieldTh")} htmlFor="article-excerpt">
+                  <textarea
+                    id="article-excerpt"
+                    rows={2}
+                    value={formExcerpt}
+                    onChange={(e) => setFormExcerpt(e.target.value)}
+                    placeholder="สรุปย่อสั้น ๆ 1-2 บรรทัด สำหรับแสดงผลบนการ์ดข่าว..."
+                    className="w-full rounded-md border p-2 text-sm bg-transparent"
+                  />
+                </LiyonField>
+
+                <LiyonField label={t("news.contentFieldTh")} htmlFor="article-content">
+                  <textarea
+                    id="article-content"
+                    rows={8}
+                    value={formContent}
+                    onChange={(e) => setFormContent(e.target.value)}
+                    placeholder="เนื้อหาข่าวแบบละเอียด รองรับการจัดย่อหน้าและข้อความ..."
+                    required
+                    className="w-full rounded-md border p-2 text-sm bg-transparent font-sans"
+                  />
+                </LiyonField>
+              </div>
+            ) : (
+              <div className="space-y-4 rounded-xl border p-4 bg-muted/10">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+                    <span>🇬🇧</span>
+                    <span>{t("news.tabEn")}</span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    แปลอัตโนมัติด้วย Google Gemini หรือปรับแต่งเองได้
+                  </span>
+                </div>
+
+                <LiyonField label={t("news.titleFieldEn")} htmlFor="article-title-en">
+                  <input
+                    id="article-title-en"
+                    value={formTitleEn}
+                    onChange={(e) => setFormTitleEn(e.target.value)}
+                    placeholder="e.g. Faculty Launches Community Technology Innovation Project"
+                  />
+                </LiyonField>
+
+                <LiyonField label={t("news.excerptFieldEn")} htmlFor="article-excerpt-en">
+                  <textarea
+                    id="article-excerpt-en"
+                    rows={2}
+                    value={formExcerptEn}
+                    onChange={(e) => setFormExcerptEn(e.target.value)}
+                    placeholder="Brief 1-2 sentence summary for article card preview..."
+                    className="w-full rounded-md border p-2 text-sm bg-transparent"
+                  />
+                </LiyonField>
+
+                <LiyonField label={t("news.contentFieldEn")} htmlFor="article-content-en">
+                  <textarea
+                    id="article-content-en"
+                    rows={8}
+                    value={formContentEn}
+                    onChange={(e) => setFormContentEn(e.target.value)}
+                    placeholder="Full article content in English..."
+                    className="w-full rounded-md border p-2 text-sm bg-transparent font-sans"
+                  />
+                </LiyonField>
+              </div>
+            )}
+
+            {/* Common Image and Publishing Details */}
             <LiyonField label={t("news.coverImageField")} htmlFor="article-cover">
               <input
                 id="article-cover"
                 value={formCoverImageUrl}
                 onChange={(e) => setFormCoverImageUrl(e.target.value)}
                 placeholder="https://example.com/images/cover.jpg"
-              />
-            </LiyonField>
-
-            <LiyonField label={t("news.excerptField")} htmlFor="article-excerpt">
-              <textarea
-                id="article-excerpt"
-                rows={2}
-                value={formExcerpt}
-                onChange={(e) => setFormExcerpt(e.target.value)}
-                placeholder="สรุปย่อสั้น ๆ 1-2 บรรทัด สำหรับแสดงผลบนการ์ดข่าว..."
-                className="w-full rounded-md border p-2 text-sm bg-transparent"
-              />
-            </LiyonField>
-
-            <LiyonField label={t("news.contentField")} htmlFor="article-content">
-              <textarea
-                id="article-content"
-                rows={8}
-                value={formContent}
-                onChange={(e) => setFormContent(e.target.value)}
-                placeholder="เนื้อหาข่าวแบบละเอียด รองรับการจัดย่อหน้าและข้อความ..."
-                required
-                className="w-full rounded-md border p-2 text-sm bg-transparent font-sans"
               />
             </LiyonField>
 

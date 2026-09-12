@@ -60,4 +60,20 @@ describe("news validations", () => {
       }).status,
     ).toBe("PUBLISHED");
   });
+
+  it("validate createArticleSchema รองรับข้อมูล 2 ภาษา (titleEn, excerptEn, contentEn)", () => {
+    const valid = {
+      title: "ประกาศรับสมัครนักศึกษาใหม่",
+      titleEn: "New Student Admission Announcement",
+      categoryId: dummyCatId,
+      excerpt: "สรุปรายละเอียด",
+      excerptEn: "Summary of admission details",
+      content: "รายละเอียด...",
+      contentEn: "Full details in English...",
+    };
+    const parsed = createArticleSchema.parse(valid);
+    expect(parsed.titleEn).toBe("New Student Admission Announcement");
+    expect(parsed.excerptEn).toBe("Summary of admission details");
+    expect(parsed.contentEn).toBe("Full details in English...");
+  });
 });
