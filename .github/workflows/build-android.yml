@@ -16,6 +16,9 @@ on:
       - "public/**"
       - ".github/workflows/build-android.yml"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build Android APK for Galaxy S23 Ultra
@@ -38,22 +41,31 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "npm"
 
       - name: Install Dependencies
         run: |
-          npm ci || npm install --legacy-peer-deps
+          npm install --ignore-scripts --legacy-peer-deps
 
       - name: Configure Server URL (if provided)
+        env:
+          INPUT_SERVER_URL: ${{ github.event.inputs.server_url }}
         run: |
-          if [ -n "${{ github.event.inputs.server_url }}" ]; then
-            echo "Configuring CAPACITOR_SERVER_URL to ${{ github.event.inputs.server_url }}"
-            echo "CAPACITOR_SERVER_URL=${{ github.event.inputs.server_url }}" >> $GITHUB_ENV
-          fi
-
-      - name: Sync Capacitor Android
-        run: |
-          npx cap sync android
+          node -e '
+            const fs = require("fs");
+            const targetUrl = process.env.INPUT_SERVER_URL || process.env.CAPACITOR_SERVER_URL;
+            if (targetUrl) {
+              console.log("Configuring server.url to:", targetUrl);
+              const path = "android/app/src/main/assets/capacitor.config.json";
+              if (fs.existsSync(path)) {
+                const cfg = JSON.parse(fs.readFileSync(path, "utf8"));
+                cfg.server = cfg.server || {};
+                cfg.server.url = targetUrl;
+                cfg.server.cleartext = true;
+                fs.writeFileSync(path, JSON.stringify(cfg, null, 2));
+                console.log("Updated", path, "successfully.");
+              }
+            }
+          '
 
       - name: Grant Execute Permission for Gradlew
         run: |
@@ -64,9 +76,33 @@ jobs:
           cd android
           ./gradlew assembleDebug --stacktrace
 
+      - name: Copy and Rename APK
+        run: |
+          mkdir -p build-output
+          cp android/app/build/outputs/apk/debug/app-debug.apk build-output/FMS-Academic-S23Ultra.apk
+
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: fms-app-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: FMS-Academic-S23Ultra-APK
+          path: build-output/FMS-Academic-S23Ultra.apk
           retention-days: 30
+
+      - name: Create or Update GitHub Release with APK
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: android-latest
+          name: "FMS Academic Android APK (Galaxy S23 Ultra)"
+          body: |
+            ## FMS Academic System - Android APK
+            ไฟล์ติดตั้ง `.apk` สำหรับ Samsung Galaxy S23 Ultra (SM-S918B/DS) และ Android 14/15/16
+            
+            ### วิธีดาวน์โหลดและติดตั้ง:
+            1. ดาวน์โหลดไฟล์ `FMS-Academic-S23Ultra.apk` ด้านล่างลงมือถือ
+            2. แตะเปิดไฟล์เพื่อติดตั้ง
+          draft: false
+          prerelease: false
+          files: build-output/FMS-Academic-S23Ultra.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
